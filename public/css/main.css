@@ -409,13 +409,13 @@ Chat
 }
 
 #chat_room .chat-container .message-container > ul{
-    margin-left: 5px;
+    padding-left: 0;
 }
 
 #chat_room .chat-container .message-container > ul > li.message-block{
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #aaa;
     list-style: outside none none;
-    padding: 10px 0 5px 20px;
+    padding: 5px 0 5px 20px;
 }
 
 
@@ -431,6 +431,14 @@ Chat
 #chat_room .message-container .message-block.notification .message{
     font-style: italic;
     color: #666;
+}
+
+#chat_room .message-container .message-block.notification .message p{
+    margin-bottom: 0;
+}
+
+#chat_room .message-container .message-block.notification .message p:after{
+    clear: both;
 }
 
 #chat_room .message-container .date{

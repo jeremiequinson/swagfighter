@@ -5,33 +5,12 @@
         <div class="message-container">
 
             <ul>
-                <li class="message-block">
-                    <div class="user">Machin truc</div>
+                <li class="message-block" ng-repeat="messageBlock in listMessage" ng-class="{notification:messageBlock.isnotification}">
+                    <div class="user" ng-hide="messageBlock.isnotification">{{messageBlock.user.username}}</div>
                     <div class="message">
-                        <p>Salut ! <span class="date">10:31</span></p>
-                        <p>Ca va ? <span class="date">10:32</span></p>
-                    </div>
-                </li>
-
-                <li class="message-block notification">
-                    <div class="message">
-                        Maosis vient de se connecter
-                    </div>
-                </li>
-
-                <li class="message-block">
-                    <div class="user">Bidule</div>
-                    <div class="message">
-                        <p>Yo ! <span class="date">10:34</span></p>
-                        <p>Carrément ? <span class="date">10:34</span></p>
-                    </div>
-                </li>
-
-                <li class="message-block">
-                    <div class="user">Machin truc</div>
-                    <div class="message">
-                        <p>t'es là ! <span class="date">10:34</span></p>
-                        <p>LEL j'ai écri quand ta répondu ! <span class="date">10:34</span></p>
+                        <p ng-repeat="msg in messageBlock.messages">
+                            {{ msg.message }} &nbsp; <span class="date">{{msg.date | date: 'hh:mm'}}</span><span class="clear"></span>
+                        </p>
                     </div>
                 </li>
             </ul>
@@ -43,7 +22,7 @@
             <form name="chatForm" ng-submit="chatForm.$valid && submitMessage()">
                 <div class="row">
                     <div class="col-md-9">
-                        <input type="text" required name="message" ng-model="message"/>
+                        <input type="text" required name="message" ng-model="currentMessage"/>
                     </div>
                     <div class="col-md-3">
                         <input type="submit" class="btn-primary btn" value="envoyer"/>

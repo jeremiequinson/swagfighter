@@ -58,13 +58,16 @@
 
 
      //Login service : Requête l'API pour loger l'user
-    app.service('LoginService', ['$http', '$rootScope', 'HTTP_HOST', 'UserService', function($http, $rootScope, HTTP_HOST, UserService) {
+    app.service('LoginService', ['$http', '$rootScope', 'UserService', '$location',
+        function($http, $rootScope, UserService, $location) {
             var service = this,
-                path = '/backend/auth/';
+                rootpath = 'http://' + $location.host() + ':' + $location.port(),
+                path = rootpath + '/backend/auth/';
+
 
             //Récupère l'url du module d'authenfication
             function getUrl() {
-                return HTTP_HOST + path;
+                return path;
             }
 
             //Récupère une url pour une action specifique
@@ -146,7 +149,7 @@
 
                         Flash.create("info", "Vous êtes connecté au serveur");
 
-                        SocketFactory.emit('authenticate', {username: user.username, token: user.username});
+                        SocketFactory.emit('authenticate', {username: user.username, token: user.token});
 
                         socket.on('authenticate', function(data){
                             if(data.error){
@@ -198,27 +201,20 @@
 
             //Lorsqu'on envoie un message
             SocketFactory.emit = function (eventName, data, callback) {
-                /*
-                var user = getUser();
 
-                //On encapsule les données dans un objet contenant: le message et l'utilisateur
-                var newData = {
-                    message: data,
-                    user: {
-                        username: user.username,
-                        token: user.token
-                    }
-                };*/
+                if(socket != null) {
 
-                //On retourne le message
-                socket.emit(eventName, data, function () {
-                    var args = arguments;
-                    $rootScope.$apply(function () {
-                        if (callback) {
-                            callback.apply(socket, args);
-                        }
+                    //On retourne le message
+                    socket.emit(eventName, data, function () {
+                        var args = arguments;
+                        $rootScope.$apply(function () {
+                            if (callback) {
+                                callback.apply(socket, args);
+                            }
+                        });
                     });
-                })
+                };
+
             };
 
 
@@ -230,13 +226,15 @@
 
 
     //UtilsService
-    app.service('UtilsService', ['$http', '$rootScope', 'HTTP_HOST', function($http, $rootScope, HTTP_HOST) {
+    app.service('UtilsService', ['$http', '$rootScope', '$location',
+        function($http, $rootScope, $location) {
             var service = this,
-                path = '/backend/';
+                rootpath = 'http://' + $location.host() + ':' + $location.port(),
+                path = rootpath + '/backend/';
 
             //Récupère l'url
             var getUrl = function(action){
-                return HTTP_HOST + path + action;
+                return path + action;
             }
 
             //Fonctions publiques

@@ -61,6 +61,11 @@
 
 
 
+
+
+        
+
+
         //Lorsque le client se connecte, on  envoie une demande d'authentification
         io.on('connection', function (client) {
 
@@ -94,6 +99,7 @@
 
                         //Réponse
                         response = {error: false, message: "Authenticated"};
+                        io.sockets.emit('chat.connected', {user: user});
                     }
                     else{
                         //log
@@ -108,8 +114,9 @@
             });
 
 
+            //lorsqu'on renvoie un message
             client.on('chat.message', function(data){
-
+                client.broadcast.emit("chat.message", {message: data, username: client.user.username});
             });
 
 
@@ -141,6 +148,5 @@
 
         return server;
     }
-
 
 }());

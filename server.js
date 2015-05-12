@@ -6,13 +6,13 @@
     var express  = require('express');
     var app = express();
     var mongoose = require('mongoose');
-    var port = process.env.PORT || 8080;
     var config = require('./config/config');
     var morgan = require('morgan');
     var bodyParser = require('body-parser');
     var methodOverride = require('method-override');
     var consolidate = require('consolidate');
     var path = require("path");
+    var port = process.env.PORT || 8080;
 
 
 
@@ -35,13 +35,14 @@
     app.set('views',  __dirname + '/public');
     app.engine('view.html', consolidate.ejs);
 
-    //Sockets
-    var server = require('./app/sockets')(app);
-
     //routes
     require('./app/routes')(app);
 
 
+    //Sockets
+    var server = require('./app/sockets')(app);
+
+    //On écoute sur le port spécifié
     server.listen(port);
     console.log("Application en attente de SWAG sur le port : " + port);
 

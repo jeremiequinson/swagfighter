@@ -27,20 +27,19 @@
             //Message
             $scope.user = UserService.getCurrentUser();
             $scope.currentMessage = "";
-            $scope.listMessage = {};
+            $scope.listMessage = [];
+
+            $scope.$watch($scope.listMessage, function(){
+                console.log("Liste modifiée", $scope.listMessage);
+            });
+
 
 
             var addMessage = function(message, username){
 
-                //Date du message (pour l'instant on affiche que l'heure)
-                var date = new Date()
-                var hours = format_two_digits(date.getHours());
-                var minutes = format_two_digits(date.getMinutes());
-                var dateStr = hours + ":" + minutes;
-
                 //objet message
                 var message = {
-                    date: dateStr,
+                    date: new Date(),
                     message: message
                 }
 
@@ -58,7 +57,25 @@
                     };
 
                     $scope.listMessage.push(messageBlock);
+
                 }
+
+            }
+
+
+            //notification
+            var addNotification = function(message){
+
+                //Sinon on construit un nouveau messageBlock et on l'ajoute à la liste
+                var messageBlock = {
+                    user: {
+                        username: "robot",
+                    },
+                    isnotification: true,
+                    messages: [{message: message, date: new Date()}]
+                };
+
+                $scope.listMessage.push(messageBlock);
             }
 
 
@@ -69,23 +86,29 @@
                 SocketService.emit('chat.message', $scope.currentMessage);
 
                 //Ajoute le message dans le scope
-                addMessage($scope.currentMessage, $scope.user);
+
+                var message = $scope.currentMessage;
+                addMessage(message, $scope.user.username);
 
                 //On vide le message
                 $scope.currentMessage = "";
             }
 
+
             //Lorsqu'un utilisateur reçoit un message
             SocketService.on('chat.message', function(data){
-
+                console.log('chat.message', data);
                 //Ajoute le message dans le scope
+
                 addMessage(data.message, data.username);
             });
+
 
             //Lorsqu'un utilisateur se connecte
             SocketService.on('chat.connected', function(data){
                 //Ajoute le message dans le scope
-                addMessage("", data.username);
+                var message = data.user.username + " vient de se connecter.";
+                addNotification(message);
             });
 
         }]);

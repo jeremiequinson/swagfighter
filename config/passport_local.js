@@ -43,7 +43,7 @@
                         }
 
                         // check to see if theres already a user with that email
-                        if (!user || user == null) {
+                        if (user != null) {
                             //return done(null, false, req.flash('signupMessage', "Le nom d'utilisateur n'est pas disponible"));
                             return done(null, false, {message: "Le nom d'utilisateur n'est pas disponible"});
                         }

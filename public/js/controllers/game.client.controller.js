@@ -3,8 +3,8 @@
 
     var app = angular.module('sfModule');
 
-    app.controller('GameController', ['$scope', '$http', 'SocketService', 'HTTP_HOST', 'Flash', '$timeout',
-        function ($scope, $http, SocketService, HTTP_HOST, Flash, $timeout) {
+    app.controller('GameController', ['$scope', '$http', 'SocketService', 'Flash', '$timeout',
+        function ($scope, $http, SocketService, Flash, $timeout) {
 
             SocketService.connect();
 
@@ -13,13 +13,13 @@
             });
             SocketService.disconnect();
 
-
+/*
             $scope.test = function () {
                 $http.get(HTTP_HOST + '/backend/api/game')
                     .success(function (data) {
                         console.log(data);
                     });
-            };
+            };*/
 
         }]);
 
