@@ -47,7 +47,7 @@
                             controller: 'AuthController'
                         },
                         'authForm@register': {
-                            templateUrl: "views/partials/registerForm",
+                            templateUrl: "views/partials/registerform",
                             controller: 'RegisterController'
                         }
                     }
