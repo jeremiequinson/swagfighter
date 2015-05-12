@@ -1,0 +1,30 @@
+<div class="form-container middle-box center" ng-controller="LoginController" >
+
+    <form name="loginForm" novalidate ng-submit="loginForm.$valid && login()">
+
+        <div class="form-field">
+            <div class="form-field-label">
+                <label>Nom d'utilisateur</label>
+            </div>
+            <div class="form-field-input">
+                <input required ng-model="userLogin.username" type="text" value="" name="username" />
+            </div>
+        </div>
+
+        <div class="form-field">
+            <div class="form-field-label">
+                <label>Mot de passe</label>
+            </div>
+            <div class="form-field-input">
+                <input required ng-model="userLogin.password" type="password" value="" name="password" />
+            </div>
+        </div>
+
+        <div class="form-field form-field-submit">
+            <input type="submit" ng-disabled="loginForm.$invalid" class="button primary" value="Se connecter"/>
+        </div>
+    </form>
+
+
+
+</div>

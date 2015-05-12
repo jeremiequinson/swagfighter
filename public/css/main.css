@@ -1,0 +1,376 @@
+@CHARSET "UTF-8";
+
+html{
+
+}
+
+body{
+    color: #666;
+    font-size: 14px;
+}
+
+.button{
+    -moz-osx-font-smoothing: grayscale;
+    -moz-user-select: none;
+    border: 1px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 19px;
+    margin-bottom: 0;
+    padding: 5px 20px;
+    text-align: center;
+    text-transform: uppercase;
+    vertical-align: middle;
+    box-shadow: 1px 1px 5px -2px rgba(0,0,0,0.7);
+}
+
+.button.primary{
+    background-color: #c71444;
+    border-color: #c71444;
+    color: #ffffff;
+}
+
+.button.primary[disabled="disabled"]{
+    opacity: 0.6;
+}
+
+.button.secondary{
+    background-color: #505050;
+    border-color: #505050;
+    color: #ffffff;
+}
+
+a.button{
+    padding: 0 20px;
+}
+
+a.button:hover,
+a.button:focus{
+    text-decoration: none;
+}
+
+span.button{
+    padding: 0 20px;
+}
+
+span.button.disabled{
+    padding: 0 20px;
+    opacity: 0.6;
+}
+
+.primary{
+    color: #c71444;
+}
+
+.left{
+    float: left;
+}
+
+.right{
+    float: right;
+}
+
+.center{
+    float: none;
+    margin: 0 auto;
+}
+
+.clear{
+    clear: both;
+}
+
+.ac{text-align: center;}
+.ag{text-align: left;}
+.ar{text-align: right;}
+
+
+
+
+h1, h2, h3, h4, h5, h6{
+    margin: 0;
+    text-transform: uppercase;
+}
+
+h1{
+    font-size: 24px;
+}
+
+h2{
+    color: #666;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 5px 0 10px;
+}
+
+
+a{
+    color: #505050;
+}
+
+a:hover, a:focus{
+    color: #333;
+}
+
+
+/*
+Définition d'élément récurrent
+*/
+.middle-box{
+    width: 70%;
+    /*padding: 10px 20px;*/
+}
+
+.bordered-box{
+    border: 1px solid #DDD;
+    background-color: #F7F7F7;
+}
+
+
+
+
+
+/*
+
+/**
+FORM
+*/
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="number"]{
+    border: 1px solid #DDDDDD;
+    border-radius: 3px;
+    line-height: 27px;
+    box-shadow: 1px 1px 5px -4px rgba(0, 0, 0, 0.7) inset;
+    padding: 0 5px;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+input[type="date"]:focus,
+input[type="number"]:focus{
+    border-color: #CCC;
+    box-shadow: 1px 1px 4px -3px rgba(0, 0, 0, 0.7) inset;
+}
+
+.form-container .form-field{
+    width: 100%;
+    margin: 10px 0;
+}
+
+.form-container .form-separator{
+    border-top: 1px solid #D7D7D7;
+    width: 90%;
+    margin: auto;
+    height: 0;
+}
+
+.form-container .form-field-label{
+
+}
+
+.form-container .form-field-label label{
+    font-weight: bold;
+    margin: 0;
+    padding-bottom: 5px;
+}
+
+.form-container .form-field-input{
+    line-height: 30px;
+}
+
+.form-container .form-field-error,
+.form-container .form-field-success{
+    padding: 3px 25px 0 0;
+}
+/*
+.form-container .form-field.error .form-field-error{
+    display: block
+}
+
+.form-container .form-field.success .form-field-success{
+    display: block
+}
+*/
+
+.form-container .form-field-error span.error{
+    display: inline-block;
+    color: #FF5B5B;
+}
+
+.form-container .form-field-success span.success{
+    color: #3c763d;
+    display: inline-block;
+}
+
+.form-container .form-field input[type="text"],
+.form-container .form-field input[type="password"],
+.form-container .form-field input[type="email"],
+.form-container .form-field input[type="tel"],
+.form-container .form-field input[type="number"],
+.form-container .form-field input[type="date"],
+.form-container .form-field select{
+    width: 100%;
+    margin: auto;
+}
+
+.form-container .form-field select{
+    height: 27px;
+    line-height: 27px;
+}
+/*
+.form-container .form-field.error input[type="text"],
+.form-container .form-field.error input[type="password"],
+.form-container .form-field.error input[type="email"],
+.form-container .form-field.error input[type="date"],
+.form-container .form-field.error input[type="number"],
+.form-container .form-field.error input[type="tel"]{
+    border-color: #E67272;
+}
+
+.form-container .form-field.error input[type="text"]:focus,
+.form-container .form-field.error input[type="password"]:focus,
+.form-container .form-field.error input[type="email"]:focus,
+.form-container .form-field.error input[type="number"]:focus,
+.form-container .form-field.error input[type="date"]:focus,
+.form-container .form-field.error input[type="tel"]:focus{
+    border-color: #F03333;
+}
+*/
+.form-container .form-field.form-field-submit{
+    width: 100%;
+    margin: 25px 0 0;
+    text-align: center;
+}
+
+
+
+.form-container .row .form-field{
+    margin: 3px 0;
+}
+
+.form-container .row .form-field-label{
+    text-align: right;
+}
+
+.form-container .row .form-field-label label{
+    text-align: right;
+    line-height: 30px;
+    margin-bottom: 5px;
+    font-weight: normal;
+}
+
+.form-container .row .form-field-label,
+.form-container .row .form-field-input,
+.form-container .row .form-field-error,
+.form-container .row .form-field-success{
+    min-height: 30px;
+}
+
+input.ng-pristine.ng-invalid{
+
+}
+
+input.ng-pristine.ng-valid{
+
+}
+
+input.ng-dirty.ng-invalid{
+    border-color: red;
+}
+
+input.ng-dirty.ng-valid{
+    border-color: green;
+}
+
+
+/*
+Alerts
+*/
+.main-alerts-container{
+    margin: auto;
+    position: absolute;
+    right: 16px;
+    top: 20px;
+    width: 35%;
+}
+
+.main-alerts-container .alert{
+    opacity: 0.8;
+    margin: 0;
+    box-shadow: 3px 3px 4px -1px rgba(0, 0, 0, 0.46);
+    margin-bottom: 15px;
+}
+
+.main-alerts-container .alert:hover{
+    opacity: 0.9;
+}
+
+.alertIn, .alertOut {
+    -webkit-transition: -webkit-transform 0.22s cubic-bezier(0.25, 0, 0.25, 1), opacity 0.22s cubic-bezier(0.25, 0, 0.25, 1);
+    -moz-transition: -moz-transform 0.22s cubic-bezier(0.25, 0, 0.25, 1), opacity 0.22s cubic-bezier(0.25, 0, 0.25, 1);
+    -o-transition: -o-transform 0.22s cubic-bezier(0.25, 0, 0.25, 1), opacity 0.22s cubic-bezier(0.25, 0, 0.25, 1);
+    transition: transform 0.22s cubic-bezier(0.25, 0, 0.25, 1), opacity 0.22s cubic-bezier(0.25, 0, 0.25, 1);
+}
+.alertIn.ng-hide-remove, .alertOut.ng-hide-add.ng-hide-add-active {
+    opacity: 0;
+    -webkit-transform: translate3d(100px, 0px, 0px);
+    transform: translate3d(100px, 0px, 0px);
+    display: block !important;
+}
+.alertOut.ng-hide-add, .alertIn.ng-hide-remove.ng-hide-remove-active {
+    opacity: 1;
+    display: block !important;
+    -webkit-transform: translate3d(0px, 0px, 0px);
+    transform: translate3d(0px, 0px, 0px);
+}
+
+
+
+
+
+/*
+LOGIN
+*/
+#auth_section{
+
+}
+
+#auth_section .nav.nav-tabs{
+
+}
+
+#auth_section .nav.nav-tabs > li{
+    width: 49%;
+}
+
+#auth_section .nav.nav-tabs > li > a{
+    color: #666;
+    font-size: 18px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+#auth_section .nav.nav-tabs > li.active > a{
+    font-weight: bold;
+}
+
+#auth_section .tabs-body{
+    border-color: #ddd;
+    border-style: solid;
+    border-width: 0 1px 1px;
+    padding: 15px 0 25px;
+}
+
+#auth_section .form-container{
+
+}
+

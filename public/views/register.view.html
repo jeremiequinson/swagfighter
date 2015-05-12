@@ -1,0 +1,32 @@
+<section id="auth_section">
+
+    <div class="container">
+
+        <div class="middle-box center" ng-controller="AuthTabController">
+
+            <ul class="nav nav-tabs">
+                <li role="presentation" ng-class="{active: isAuthTabSet(1)}">
+                    <a href >
+                        Se connecter
+                    </a>
+                </li>
+                <li role="presentation" ng-class="{active: isAuthTabSet(2)}">
+                    <a href ng-click="setAuthTab(2)">
+                        Créer un compte
+                    </a>
+                </li>
+            </ul>
+
+            <div class="tabs-body">
+
+                <login-form ng-show="isAuthTabSet(1)"></login-form>
+
+                <register-form ng-show="isAuthTabSet(2)"></register-form>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+

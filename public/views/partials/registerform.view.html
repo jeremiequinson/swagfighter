@@ -1,0 +1,46 @@
+<div class="form-container middle-box center" ng-controller="RegisterController">
+
+    <form name="registerForm" novalidate ng-submit="registerForm.$valid && addUser()" ng-click="test()">
+
+        <div class="form-field">
+            <div class="form-field-label">
+                <label>Nom d'utilisateur</label>
+            </div>
+            <div class="form-field-input">
+                <input required ng-model="userRegister.username" ensure-unique="{schema: 'User', dbfield: 'username'}" type="text" value="" name="username" />
+            </div>
+            <div class="invalid form-field-error" ng-show="registerForm.username.$dirty && registerForm.username.$invalid">
+                <span ng-show="registerForm.username.$error.required">
+                    Veuillez renseigner un nom d'utilisateur
+                </span>
+                <span ng-show="registerForm.username.$error.unique">
+                    L'utilisateur est déjà utilisé
+                </span>
+            </div>
+        </div>
+
+        <div class="form-field">
+            <div class="form-field-label">
+                <label>Mot de passe</label>
+            </div>
+            <div class="form-field-input">
+                <input required ng-model="userRegister.password" type="password" value="" name="password" />
+            </div>
+        </div>
+
+        <div class="form-field">
+            <div class="form-field-label">
+                <label>Confirmer le mot de passe</label>
+            </div>
+            <div class="form-field-input">
+                <input required compare-to="userRegister.password" ng-class="{'ng-dirty' : registerForm.$submitted}" ng-model="userRegister.confirmpassword" type="password" value="" name="confirmpassword" />
+            </div>
+        </div>
+
+        <div class="form-field form-field-submit">
+            <input type="submit" ng-disabled="registerForm.$invalid" class="button primary" value="S'enregistrer"/>
+        </div>
+
+    </form>
+
+</div>
