@@ -4,8 +4,8 @@
     var app = angular.module('sfModule');
 
     //Main controller
-    app.controller('MainController', ['$scope', '$rootScope', '$state', 'LoginService', 'UserService', 'Flash',
-        function ($scope, $rootScope, $state, LoginService, UserService, Flash) {
+    app.controller('MainController', ['$scope', '$rootScope', '$state', 'LoginService', 'UserService', 'Flash', 'SocketService',
+        function ($scope, $rootScope, $state, LoginService, UserService, Flash, SocketService) {
 
 
             $scope.currentUser = UserService.getCurrentUser();
@@ -31,9 +31,14 @@
 
             //Au chargement de la page
             $scope.init = function(){
-                if($scope.currentUser != null){
+                /*if($scope.currentUser != null){
 
-                }
+                }*/
+            };
+
+            //Permet de retenter une connexion au serveur de socket
+            $scope.connectSocket = function(){
+                SocketService.connect();
             }
 
             //Evenement authorisé (lorsque l'utilisateur se connecte)

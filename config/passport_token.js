@@ -20,13 +20,13 @@
         passport.use('token-login', new TokenStrategy(strategyOptions,
             function (username, token, done) {
 
-                User.findOne({username: username}, function (err, user) {
+                User.findOne({username: username, token: token}, function (err, user) {
 
                     if (err) {
                         return done(err);
                     }
 
-                    if (!user) {
+                    if (!user || user == null) {
                         return done(null, false);
                     }
 

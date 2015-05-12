@@ -21,30 +21,71 @@
 
 
     //Controlleur du Chat
-    app.controller('ChatController', ['$scope', '$rootScope', 'SocketService',
-        function($scope, $rootScope, SocketService){
+    app.controller('ChatController', ['$scope', '$rootScope', 'SocketService', 'UserService',
+        function($scope, $rootScope, SocketService, UserService){
 
             //Message
-            $scope.message = {};
+            $scope.user = UserService.getCurrentUser();
+            $scope.currentMessage = "";
+            $scope.listMessage = {};
+
+
+            var addMessage = function(message, username){
+
+                //Date du message (pour l'instant on affiche que l'heure)
+                var date = new Date()
+                var hours = format_two_digits(date.getHours());
+                var minutes = format_two_digits(date.getMinutes());
+                var dateStr = hours + ":" + minutes;
+
+                //objet message
+                var message = {
+                    date: dateStr,
+                    message: message
+                }
+
+                //Si l'auteur du message a écrit le précédent, on l'ajoute à la suite du block message (à la Skype)
+                if($scope.listMessage.length > 0 && $scope.listMessage[$scope.listMessage.length - 1].user.username == username){
+                    $scope.listMessage[$scope.listMessage.length - 1].messages.push(message);
+                }
+                else{
+                    //Sinon on construit un nouveau messageBlock et on l'ajoute à la liste
+                    var messageBlock = {
+                        user: {
+                            username: username,
+                        },
+                        messages: [message]
+                    };
+
+                    $scope.listMessage.push(messageBlock);
+                }
+            }
+
 
             //soumission du message
             $scope.submitMessage = function(){
-                $scope.message = {};
 
                 //Lorsqu'un utilisateur reçoit un message
-                SocketService.on('chat.messages', function(data){
-                    console.log("messages:", data);
-                });
+                SocketService.emit('chat.message', $scope.currentMessage);
+
+                //Ajoute le message dans le scope
+                addMessage($scope.currentMessage, $scope.user);
+
+                //On vide le message
+                $scope.currentMessage = "";
             }
 
             //Lorsqu'un utilisateur reçoit un message
-            SocketService.on('chat.messages', function(data){
-                console.log("messages:", data);
+            SocketService.on('chat.message', function(data){
+
+                //Ajoute le message dans le scope
+                addMessage(data.message, data.username);
             });
 
             //Lorsqu'un utilisateur se connecte
             SocketService.on('chat.connected', function(data){
-                console.log("Connected:", data);
+                //Ajoute le message dans le scope
+                addMessage("", data.username);
             });
 
         }]);

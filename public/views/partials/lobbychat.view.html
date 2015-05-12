@@ -1,19 +1,54 @@
 <div id="chat_room" ng-controller="ChatController">
 
-    <h3>Chat</h3>
-    <p>Pour discuter, s'mettre bien, posey!</p>
-
     <div class="chat-container">
 
         <div class="message-container">
+
+            <ul>
+                <li class="message-block">
+                    <div class="user">Machin truc</div>
+                    <div class="message">
+                        <p>Salut ! <span class="date">10:31</span></p>
+                        <p>Ca va ? <span class="date">10:32</span></p>
+                    </div>
+                </li>
+
+                <li class="message-block notification">
+                    <div class="message">
+                        Maosis vient de se connecter
+                    </div>
+                </li>
+
+                <li class="message-block">
+                    <div class="user">Bidule</div>
+                    <div class="message">
+                        <p>Yo ! <span class="date">10:34</span></p>
+                        <p>Carrément ? <span class="date">10:34</span></p>
+                    </div>
+                </li>
+
+                <li class="message-block">
+                    <div class="user">Machin truc</div>
+                    <div class="message">
+                        <p>t'es là ! <span class="date">10:34</span></p>
+                        <p>LEL j'ai écri quand ta répondu ! <span class="date">10:34</span></p>
+                    </div>
+                </li>
+            </ul>
 
         </div>
 
 
         <div class="message-form">
             <form name="chatForm" ng-submit="chatForm.$valid && submitMessage()">
-                <input type="text" required name=""
-
+                <div class="row">
+                    <div class="col-md-9">
+                        <input type="text" required name="message" ng-model="message"/>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="submit" class="btn-primary btn" value="envoyer"/>
+                    </div>
+                </div>
             </form>
         </div>
     </div>

@@ -11,7 +11,7 @@
                 User.findOne({ username: username }, function(err, user) {
 
                     if (err) { return done(err); }
-                    if (!user) {
+                    if (!user || user == null) {
                         return done(null, false, { message: 'Les identifiants sont incorrects' });
                     }
                     if (!user.validPassword(password)) {
@@ -43,7 +43,7 @@
                         }
 
                         // check to see if theres already a user with that email
-                        if (user) {
+                        if (!user || user == null) {
                             //return done(null, false, req.flash('signupMessage', "Le nom d'utilisateur n'est pas disponible"));
                             return done(null, false, {message: "Le nom d'utilisateur n'est pas disponible"});
                         }

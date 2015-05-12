@@ -77,8 +77,14 @@
 
 
             // Create flash message
-            dataFactory.create = function (type, text, param, param2) {
+            dataFactory.create = function (type, text, options) {
                 var $this = this;
+                var params = options || {};
+                var addClass = params.addClass || '';
+                var time = params.timeout || 5000;
+                var notimer = params.notimer || false;
+
+
 
                 $timeout(function() {
 
@@ -86,14 +92,17 @@
                         id:       new Date().getTime(),
                         type:     type,
                         text:     text,
-                        addClass: param,
+                        addClass: addClass,
                         active:   true,
                         timeOut:  null,
                         begin:    function () {
                             var $thisFlash = this;
-                            this.timeOut = $timeout(function () {
-                                $this.dismiss($thisFlash);
-                            }, param2 || 5000);
+
+                            if(!notimer) {
+                                this.timeOut = $timeout(function () {
+                                    $this.dismiss($thisFlash);
+                                }, time);
+                            }
                         }
                     };
 
