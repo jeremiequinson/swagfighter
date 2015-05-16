@@ -40,7 +40,7 @@
 
 
     //Sockets
-    var server = require('./app/sockets')(app);
+    var server = require('./app/sockets/sockets')(app);
 
     //On écoute sur le port spécifié
     server.listen(port);

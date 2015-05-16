@@ -1,16 +1,18 @@
-<div id="players_list" ng-controller="PlayersController">
+<div id="players_list" class="lobby-section panel panel-default" ng-controller="UserlistController" ng-init="initUserList()">
 
-    <h3>Joueurs connecté</h3>
-    <p>
-        Clique sur un joueur pour le provoquer en duel. S'il accepte, défonce le ! <br/>
-        Si il refuse, fout toi de sa gueule sur le chat. Le fragile...
-    </p>
+    <div class="panel-heading">
+        <h3>Joueurs en ligne</h3>
+    </div>
 
-
-
-    <ul>
-
-    </ul>
-
+    <div class="panel-body">
+        <div ng-repeat="(key, user) in listUsers" class="user-block">
+            {{user.username}}
+            <button class="btn btn-primary btn-sm right"  ng-hide="user.challenger || user.challenged" ng-click="challengePlayer(key)">Défier</button>
+            <button class="btn btn-danger btn-sm right" ng-show="user.challenger" ng-click="challengePlayer(key)">Accepter le défie !</button>
+            <span ng-show="user.challenged" class="challenge-message"> (Défie lancé)</span>
+            <button class="btn btn-default btn-sm right" ng-show="user.challenged" ng-click="challengePlayer(key)">Annuler</button>
+            <div class="clear"></div>
+        </div>
+    </div>
 
 </div>

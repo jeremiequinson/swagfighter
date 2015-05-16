@@ -97,128 +97,77 @@
             };
         }]);
 
+
     //Service Socket
-    app.factory('SocketService', ['$rootScope', 'UserService', 'Flash',
-        function ($rootScope, UserService, Flash) {
-            var socket = null;
-            var SocketFactory = {};
+    app.factory('SocketService', ['$q', '$rootScope', '$location', '$timeout', 'UserService', 'socketFactory', 'Flash',
+        function ($q, $rootScope, $location, $timeout, UserService, socketFactory, Flash) {
+
+            var SocketFactory = $q.defer();
 
 
-            //test si l'utilisateur peut utiliser le service de socket.
+            //Récupère l'utilisateur
             var getUser = function(){
-
-                //utilisateur stocké dans le datastorage
-                var user = UserService.getCurrentUser();
-
-                //Si l'utilisateur est authentifié, on retourne l"utilisateur.
-                if(user != null) {
-
-                    //Si il n'est pas encore connecté au serveur, on le connect
-                    if(socket == null){
-                        SocketFactory.connect(user);
-                    }
-
-                    return user;
-                }
-                else{
-                    //Sinon on le déconnecte s'il est encore connecté
-                    SocketFactory.disconnect();
-                    console.error('[Service Socket] Utilisateur déconnecté');
-                    return null;
-                }
-            }
-
-
-            //Retourne true si l'utilisateur est actuellement connecté et authentifié
-            SocketFactory.isAuthenticated = function(){
-                return socket.authenticated;
-            }
-
-
-            //Connexion
-            SocketFactory.connect = function(user){
-                if(socket == null){
-                    socket = io.connect();
-                    socket.authenticated = false;
-
-                    if(!user){
-                        user = UserService.getCurrentUser();
-                    }
-
-                    socket.on('connect', function(){
-
-                        Flash.create("info", "Vous êtes connecté au serveur");
-
-                        SocketFactory.emit('authenticate', {username: user.username, token: user.token});
-
-                        socket.on('authenticate', function(data){
-                            if(data.error){
-                                console.log("Impossible de s'authentifier : " + data.message);
-                            }
-                            else{
-                                console.log("Utilisateur authentifié : " + data.message);
-                                socket.authenticated = true;
-                            }
-                        });
-
-                        socket.on('disconnect', function(data){
-                            SocketFactory.disconnect(true);
-                        });
-                    });
-                }
+                return UserService.getCurrentUser();
             };
 
-            //Déconnexion
-            SocketFactory.disconnect = function(canretry){
-                if(socket != null){
-                    socket.disconnect();
-                    socket = null;
-
-                    var message = "Vous avez été déconnecté du serveur";
-                    var options = {};
-                    if(canretry){
-                        message += "<br/> <a href ng-click='connectSocket()' close-flash>Se reconnecter</a>";
-                        options.timeout = 5000;
-                    }
-
-                    Flash.create('info', message, options);
-                }
+            //Event broadcast disconnect
+            var disconnectBroadcast = function(){
+                $rootScope.$broadcast('socketDisconnected');
             };
 
-            //Lorsqu'on recoit un message
-            SocketFactory.on = function (eventName, callback) {
 
-                var user = getUser();
+            var resolvePromise = function() {
 
-                socket.on(eventName, function () {
-                    var args = arguments;
-                    $rootScope.$apply(function () {
-                        callback.apply(socket, args);
-                    });
+                // resolve in another digest cycle
+                $timeout(function() {
+
+                    // create the socket
+                    var newSocket = (function() {
+
+                        //Création du factory
+                        var url = $location.host() + ":" + $location.port();
+                        var user = getUser();
+                        var token = user.token;
+                        var username = user.username;
+                        var query = 'token=' + token + "&username=" + username;
+                        var socket = io.connect(url, {
+                            query: query
+                        });
+
+                        var factory = socketFactory({
+                            ioSocket: socket
+                        });
+
+                        //Supprime tout les evenements du socket et écoute les évènements de base
+                        //Broadcast un evenement pour notifier le socket Reset
+                        factory.resetListener = function(){
+                            this.removeAllListeners();
+                            $rootScope.$broadcast('socket.reset');
+                        };
+
+                        factory.forward('connected');
+
+                        return factory;
+                    })();
+
+                    // resolve the promise
+                    SocketFactory.resolve(newSocket);
                 });
             };
 
 
-            //Lorsqu'on envoie un message
-            SocketFactory.emit = function (eventName, data, callback) {
-
-                if(socket != null) {
-
-                    //On retourne le message
-                    socket.emit(eventName, data, function () {
-                        var args = arguments;
-                        $rootScope.$apply(function () {
-                            if (callback) {
-                                callback.apply(socket, args);
-                            }
-                        });
-                    });
-                };
-
-            };
+            if(getUser() !== null){
+                resolvePromise();
+            }
 
 
-            return SocketFactory;
+
+            // listen for the authenticated event emitted on the rootScope of
+            // the Angular app. Once the event is fired, create the socket and resolve
+            // the promise.
+            $rootScope.$on('authorized', resolvePromise);
+
+            return SocketFactory.promise;
         }]);
 
 

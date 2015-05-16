@@ -66,7 +66,10 @@
                 timeOut;
 
             //Recherche un flash message par id
-            var searchIndexById = function(id){
+            var searchIndexById = function(id, list){
+
+                var listToSearch = list || $rootScope.flashList;
+
                 for(var i = 0; i < $rootScope.flashList.length; i++){
                     if($rootScope.flashList[i].id === id){
                         return i;
@@ -75,26 +78,85 @@
                 return null;
             };
 
+            //Recherche un flash avec son id
+            var searchFlashById = function(id, list){
+                var index = searchIndexById(id, list);
+
+                if(index !== null){
+                    return (!list) ? $rootScope.flashList[index] : $rootScope.flashQueue[index];
+                }
+
+                return null
+            }
+
+
+            //Supprimer un flash grace à son id
+            var dismissById = function(id){
+                //On cherche un flash du meme id dans la liste. Si un flash existe, on le supprime
+                var flashWithSameId = searchFlashById(id);
+                if(flashWithSameId === null){
+                    flashWithSameId = searchFlashById(id, $rootScope.flashQueue);
+                }
+
+                //on supprime le flash
+                if(flashWithSameId !== null){
+                    dataFactory.dismiss(flashWithSameId);
+                    return true;
+                }
+
+                return false;
+            }
+
+
+            //Supprime un message à partir d'un contenu
+            dataFactory.dismissMessageByContent = function(text, type){
+                var $this = this;
+
+                $rootScope.flashList.forEach(function(f){
+                    if(f.text == text && (type === undefined || f.type == type)){
+                        $this.dismiss(f);
+                    }
+                });
+
+                $rootScope.flashQueue.forEach(function(f){
+                    if(f.text == text && (type === undefined || f.type == type)){
+                        $this.dismiss(f);
+                    }
+                });
+            }
+
+            //Supprime un message à partir d'un contenu
+            dataFactory.dismissById = function(id){
+                var $this = this;
+                return dismissById(id);
+            }
+
 
             // Create flash message
+            //Return the id
             dataFactory.create = function (type, text, options) {
                 var $this = this;
                 var params = options || {};
                 var addClass = params.addClass || '';
                 var time = params.timeout || 5000;
                 var notimer = params.notimer || false;
-
-
+                var id = params.id || new Date().getTime();
+                var noclosebutton = params.noclosebutton;
 
                 $timeout(function() {
 
+                    //On supprime l'éventuel message flash qui comporterais le même id
+                    dismissById(id);
+
+                    //objet flash
                     var flash = {
-                        id:       new Date().getTime(),
+                        id:       id,
                         type:     type,
                         text:     text,
                         addClass: addClass,
                         active:   true,
                         timeOut:  null,
+                        noclosebutton: noclosebutton,
                         begin:    function () {
                             var $thisFlash = this;
 
@@ -106,7 +168,8 @@
                         }
                     };
 
-                    if($rootScope.flashList.length >= 2){
+
+                    if($rootScope.flashList.length >= 10){
                         //On l'ajoute à la file d'attente
                         $rootScope.flashQueue.push(flash);
                     }
@@ -116,7 +179,9 @@
                         $rootScope.hasFlash = true;
                     }
 
-                }, 50);
+                }, 100);
+
+                return id;
             };
 
 

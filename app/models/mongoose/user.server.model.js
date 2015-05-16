@@ -11,7 +11,7 @@
 var mongoose = require('mongoose');
 var bcrypt = require('bcrypt-nodejs');
 var jwt = require('jwt-simple');
-var tokenApp = require('../../config/tokens');
+var tokenApp = require('../../../config/tokens');
 var Schema = mongoose.Schema;
 
 
@@ -126,6 +126,8 @@ UserSchema.methods.isTokenValid = function() {
         return false;
     }
 };
+
+
 
 
 

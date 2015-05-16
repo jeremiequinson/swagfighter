@@ -1,12 +1,13 @@
 @CHARSET "UTF-8";
 
 html{
-
+    height: 100%;
 }
 
 body{
     color: #666;
     font-size: 14px;
+    min-height: 100%;
 }
 
 .button{
@@ -114,6 +115,17 @@ a{
 a:hover, a:focus{
     color: #333;
 }
+
+
+
+/**
+BLOCK;
+*/
+#main{
+    min-height: 100%;
+}
+
+
 
 
 /*
@@ -292,6 +304,8 @@ input.ng-dirty.ng-valid{
 }
 
 
+
+
 /*
 Alerts
 */
@@ -332,6 +346,61 @@ Alerts
     -webkit-transform: translate3d(0px, 0px, 0px);
     transform: translate3d(0px, 0px, 0px);
 }
+
+.main-alerts-container .alert{
+    position: relative;
+}
+
+.main-alerts-container .alert .flash-view-content{
+    padding-right: 20px;
+}
+
+.main-alerts-container button.close{
+    bottom: 0;
+    position: absolute;
+    right: 10px;
+    top: 0;
+}
+
+
+
+.battle-message{
+    background: url('img/iconebattle.png') no-repeat 0 0 transparent;
+    line-height: 14px;
+    padding-left: 20px;
+}
+
+table.table-notification{
+
+}
+
+table.table-notification,
+table.table-notification tr,
+table.table-notification td{
+    border: none;
+}
+
+table.table-notification td{
+    vertical-align: middle;
+    text-align: center;
+}
+
+table.table-notification td.image{
+    background: url('../img/iconebattle50.png') no-repeat 0 0 transparent;
+    background-size: cover;
+    height: 30px;
+    width: 30px;
+}
+
+table.table-notification td.message{
+    padding-left: 20px;
+}
+
+table.table-notification td.message .btn{
+    padding: 2px 10px;
+    margin-left: 10px;
+}
+
 
 
 
@@ -375,17 +444,57 @@ LOGIN
 }
 
 
+/**
+LOBBY
+*/
+#lobby_section > .container-fluid > .row > .col{
 
+}
+
+.lobby-section{
+
+}
+
+.lobby-section h3{
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.lobby-section .user-block{
+    line-height: 29px;
+    padding: 5px 10px;
+}
+
+.lobby-section .user-block:nth-child(even){
+    background-color: #FCFCFC;
+}
+
+.lobby-section .user-block:nth-child(odd){
+
+}
+
+
+/**
+LAUNCHER
+*/
+#players_list .launcher{
+    padding: 20px 0px;
+    text-align: center;
+}
+
+#players_list .challenge-message{
+    font-size: 12px;
+    font-style: italic;
+    color: #AAA;
+}
 
 /**
 Chat
 */
-#chat_room{
-
-}
-
-#chat_room .chat-container{
-
+#chat_room .panel-body,
+#players_list .panel-body{
+    padding: 0;
 }
 
 #chat_room .chat-container .message-form{
@@ -395,6 +504,11 @@ Chat
 #chat_room .chat-container .message-form input[type="text"]{
     width: 100%;
     height: 34px;
+}
+
+#chat_room .chat-container .message-form input[type="text"].ng-invalid,
+#chat_room .chat-container .message-form input[type="text"].ng-valid{
+    border-color: #DDD;
 }
 
 #chat_room .chat-container .message-form input[type="submit"]{
@@ -413,7 +527,7 @@ Chat
 }
 
 #chat_room .chat-container .message-container > ul > li.message-block{
-    border-bottom: 1px solid #aaa;
+    border-bottom: 1px solid #ddd;
     list-style: outside none none;
     padding: 5px 0 5px 20px;
 }
@@ -449,6 +563,14 @@ Chat
 
 
 
+
+#game_canvas{
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #FFF;
+    z-index: 10;
+}
 
 
 

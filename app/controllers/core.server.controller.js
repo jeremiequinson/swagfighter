@@ -1,4 +1,4 @@
-var User = require('../models/user.server.model');
+var User = require('../models/mongoose/user.server.model');
 
 
 module.exports = {

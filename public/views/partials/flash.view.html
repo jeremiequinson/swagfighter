@@ -1,7 +1,7 @@
 <div ng-repeat="flash in flashList track by $index">
 <div role="alert" ng-show="hasFlash" class="alert {{flash.addClass}} alert-{{flash.type}} ng-hide alert-dismissible alertIn alertOut ">
-    <span dynamic="flash.text"></span>
-    <button type="button" class="close" close-flash>
+    <div dynamic="flash.text" class="flash-view-content"></div>
+    <button type="button" class="close" close-flash ng-hide="flash.noclosebutton">
         <span aria-hidden="true">&times;</span>
         <span class="sr-only">Close</span>
     </button>

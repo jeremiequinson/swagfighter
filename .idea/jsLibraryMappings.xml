@@ -2,6 +2,7 @@
 <project version="4">
   <component name="JavaScriptLibraryMappings">
     <file url="file://$PROJECT_DIR$" libraries="{swagfighter node_modules}" />
+    <file url="file://$PROJECT_DIR$/app/models/usersocket.server.model.js" libraries="{Node.js Globals}" />
   </component>
 </project>
 

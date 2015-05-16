@@ -7,7 +7,7 @@
     module.exports = function(passport) {
 
         var TokenStrategy = require('passport-token').Strategy,
-            User = require('../app/models/user.server.model');
+            User = require('../app/models/mongoose/user.server.model');
 
         var strategyOptions = {
             usernameHeader: 'xcustomusername',
@@ -61,9 +61,6 @@
                 });
             }
         ));
-
-
-
     }
 
 }());

@@ -13,7 +13,7 @@ Schema = mongoose.Schema;
  */
 var MessageSchema = new Schema({
     user: {
-        type: Schema.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User'
     },
     text: {
@@ -34,4 +34,4 @@ var MessageSchema = new Schema({
     }
 });
 
-mongoose.model('User', UserSchema);
+module.exports = mongoose.model('Message', MessageSchema);

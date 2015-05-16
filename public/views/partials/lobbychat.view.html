@@ -1,34 +1,41 @@
-<div id="chat_room" ng-controller="ChatController">
+<div id="chat_room" class="lobby-section panel panel-default" ng-controller="ChatController" ng-init="initChat()">
 
-    <div class="chat-container">
+    <div class="panel-heading">
+        <h3>Chat</h3>
+    </div>
 
-        <div class="message-container">
+    <div class="panel-body">
+        <div class="chat-container">
 
-            <ul>
-                <li class="message-block" ng-repeat="messageBlock in listMessage" ng-class="{notification:messageBlock.isnotification}">
-                    <div class="user" ng-hide="messageBlock.isnotification">{{messageBlock.user.username}}</div>
-                    <div class="message">
-                        <p ng-repeat="msg in messageBlock.messages">
-                            {{ msg.message }} &nbsp; <span class="date">{{msg.date | date: 'hh:mm'}}</span><span class="clear"></span>
-                        </p>
+            <div class="message-container" id="chat_message_container">
+
+                <ul>
+                    <li class="message-block" ng-repeat="messageBlock in listMessage" ng-class="{notification:messageBlock.isnotification}">
+                        <div class="user" ng-hide="messageBlock.isnotification">{{messageBlock.user.username}}</div>
+                        <div class="message">
+                            <p ng-repeat="msg in messageBlock.messages">
+                                {{ msg.message }} &nbsp; <span class="date">{{msg.date | date: 'EEE hh:mm'}}</span><span class="clear"></span>
+                            </p>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+
+
+            <div class="message-form">
+                <form name="chatForm" novalidate ng-submit="chatForm.$valid && submitMessage()">
+                    <div class="row">
+                        <div class="col-md-9">
+                            <input type="text" required name="message" ng-model="currentMessage"/>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="submit" ng-disabled="!socketAuthenticated" class="btn-primary btn" value="envoyer"/>
+                        </div>
                     </div>
-                </li>
-            </ul>
-
-        </div>
-
-
-        <div class="message-form">
-            <form name="chatForm" ng-submit="chatForm.$valid && submitMessage()">
-                <div class="row">
-                    <div class="col-md-9">
-                        <input type="text" required name="message" ng-model="currentMessage"/>
-                    </div>
-                    <div class="col-md-3">
-                        <input type="submit" class="btn-primary btn" value="envoyer"/>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
+
 </div>

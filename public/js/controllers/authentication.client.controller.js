@@ -62,7 +62,7 @@
                     .then(function(response){
                         if(response.status == 200){
                             $scope.userRegister = {}; //en attendant
-                            $state.go('compte.game');
+                            $state.go('compte.lobby');
                         }
                         else {
                             Flash.create("danger", "Une erreur s'est produite durant l'enregistrement");

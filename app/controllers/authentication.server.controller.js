@@ -4,13 +4,14 @@
  * @type {exports}
  */
 
-var User = require('../models/user.server.model');
+var User = require('../models/mongoose/user.server.model');
 
 module.exports = {
 
 
     //Log l'utilisateur. Créé un nouveau token valide 3 jours et le stocke dans l'objet user. Retourne l'objet user.
     login: function(req, res, infos){
+
         req.user.generateToken(); //On genere un token et on le stocke
         req.user.save(function(err, user){
             if(err){

@@ -8,7 +8,16 @@
         function ($scope, $rootScope, $state, LoginService, UserService, Flash, SocketService) {
 
 
+            //Utilisateur courant
             $scope.currentUser = UserService.getCurrentUser();
+
+            //Etats sockets
+            $scope.socketConnected = false;
+
+            //Etats sockets
+            $scope.socketAuthenticated = false;
+
+
 
             //Logout si utilisateur connecté
             $scope.logout = function () {
@@ -29,17 +38,26 @@
                 }
             };
 
-            //Au chargement de la page
-            $scope.init = function(){
-                /*if($scope.currentUser != null){
-
-                }*/
-            };
-
-            //Permet de retenter une connexion au serveur de socket
-            $scope.connectSocket = function(){
-                SocketService.connect();
+            //Accept battle from flash
+            $scope.acceptBattleRequest = function(socketid){
+                $rootScope.$broadcast('challenge.get.response', {action: "challenge.get.accept", socketid: socketid});
             }
+
+            //Ignore battle from flash
+            $scope.ignoreBattleRequest = function(socketid){
+                $rootScope.$broadcast('challenge.get.response', {action: "challenge.get.remove", socketid: socketid});
+            }
+
+
+
+
+
+
+
+
+
+
+
 
             //Evenement authorisé (lorsque l'utilisateur se connecte)
             $rootScope.$on('authorized', function () {
@@ -57,6 +75,22 @@
                 Flash.create('danger', message);
                 $state.go('login');
             });
+
+
+
+
+            //Evenement authorisé (lorsque l'utilisateur n'est plus connecté)
+            $rootScope.$on('socket.connected', function () {
+                $scope.socketConnected = true;
+                $scope.socketAuthenticated = true;
+            });
+
+
+
+
+
+
+
 
         }]);
 

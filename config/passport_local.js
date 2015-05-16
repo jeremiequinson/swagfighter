@@ -3,7 +3,7 @@
     module.exports = function(passport){
 
         var LocalStrategy = require('passport-local').Strategy,
-            User = require('../app/models/user.server.model');
+            User = require('../app/models/mongoose/user.server.model');
 
         //Fonction pour vérifier qu'un utilisateur existe
         passport.use(new LocalStrategy(
