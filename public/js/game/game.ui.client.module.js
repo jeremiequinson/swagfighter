@@ -310,6 +310,9 @@
         var playerImageReverse = new Image();
         playerImageReverse.src = "../../img/game/spriteplayerreverse.png";
 
+        var yoloImage = new Image();
+        yoloImage.src = "../../img/game/yolo.png";
+
         var animationsNormal = {
             //[clipX, clipY, nbFrame, animation, tickPerFrame]
             'idle':     [0, 3, 1, 'idle', 2],
@@ -321,6 +324,7 @@
             'move':     [0, 2, 3, 'move', 2],
             'back':     [4, 2, 3, 'back', 2],
             'crouch':   [0, 0, 9, 'crouch', 2],
+            'yolo':     [0, 6, 10, false, 2],
         };
 
 
@@ -334,8 +338,13 @@
             'move':     [6, 4, 3, 'move', 2],
             'back':     [2, 4, 3, 'back', 2],
             'crouch':   [6, 6, 9, 'crouch', 2],
+            'yolo':     [6, 0, 10, false, 2],
         };
 
+
+        var animationsYolo = {
+            'normal':     [0, 2, 0, 'normal', 1],
+        };
 
 
         $this.getAnimations = function(reverse){
@@ -362,13 +371,27 @@
             });
         };
 
+
+        $this.getSpriteYolo = function(context){
+
+            return new Sprite({
+                name: "yolo",
+                context: context,
+                clipWidth: 365,
+                clipHeight:200,
+                image: yoloImage,
+                ticksPerFrame: 0,
+                animations: animationsYolo
+            });
+        };
+
         return $this;
 
     }]);
 
 
 
-    app.factory('StateFactory', ['GameConfig', function(GameConfig){
+    app.factory('StateFactory', ['GameConfig', 'SpriteFactory', function(GameConfig, SpriteFactory){
 
         var factory = {};
 
@@ -768,11 +791,36 @@
         function StatePUNCH(player){
             StateATTACK.apply(this, arguments);
             this.stateName = factory.STATE_PUNCH;
-            this.animation = "punch";
+            //this.animation = "punch";
+            this.animation = "yolo";
+
+
             this.damageTop = 5;
         }
 
         StatePUNCH.prototype = Object.create(StateATTACK.prototype);
+
+        StatePUNCH.prototype.go = function(player){
+            console.log(this.stateName);
+
+            player.attack();
+
+            if(player.velocityX > 0){
+                player.velocityX = GameConfig.physics.velocity.attackMove;
+            }
+            else if(player.velocityX < 0){
+                player.velocityX = - GameConfig.physics.velocity.attackMove;
+            }
+
+            //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
+            player.setSpriteYolo();
+            player.sprite.gotoAndPlay(this.animation, function(){
+                //player.changeState(new StateIDLE());
+                player.removeYoloSprite();
+                changeStateOnMove(player);
+            });
+        };
+
 
 
 
@@ -783,6 +831,7 @@
             this.stateName = factory.STATE_KICK;
             this.animation = "kick";
             this.damageTop = 5;
+
         }
 
         StateKICK.prototype = Object.create(StateATTACK.prototype);
@@ -805,7 +854,7 @@
         function StateYOLO(player){
             StateATTACK.apply(this, arguments);
             this.stateName = factory.STATE_YOLO;
-            this.animation = "special";
+            this.animation = "yolo";
             this.damageTop = 50;
             this.damageBottom = 50;
         }
@@ -891,13 +940,25 @@
             this.stageX = stageX;
             this.stageY = stageY;
             this.combinedKeys = [];
+            this.yolosprite;
 
 
             //Joueur collision
             this.collision = false;
 
 
+            //Set yolo
+            this.setSpriteYolo = function(){
+                this.yolosprite = SpriteFactory.getSpriteYolo(this.context);
+                this.yolosprite.x = this.x + this.sprite.clipWidth + this.stageX ;
+                this.yolosprite.y = this.y - (this.yolosprite.clipHeight / 2) + (this.sprite.clipHeight / 2) + this.stageY;
+                this.yolosprite.gotoAndPlay('normal');
+            };
 
+            //Set yolo
+            this.removeYoloSprite = function(){
+                this.yolosprite = undefined;
+            };
 
 
             this.render = function () {
@@ -926,6 +987,12 @@
 
                 this.context.font="20px Georgia";
                 this.context.fillText(this.name + " : " + this.hp + "/100", x, y);
+
+                if(this.yolosprite !== undefined){
+                    this.yolosprite.x = this.yolosprite.x + 10;
+                    this.yolosprite.render();
+                }
+
             };
 
 

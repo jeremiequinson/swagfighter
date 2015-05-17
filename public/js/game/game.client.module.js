@@ -117,6 +117,9 @@
                     this.player2 = new Player(context, "PLAYER2", true, this.x, this.y, this.width, this.height);
                     this.player1.eventServer = eventNotifieServer;
 
+                    /*this.player1.stage = this;
+                    this.player2.stage = this;*/
+
                     this.player1.x = 100;
                     this.player2.x = 900;
                     this.player1.y = 200;
