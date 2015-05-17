@@ -4,8 +4,8 @@
 (function () {
     'use strict';
 
-    var app = angular.module('SFGame.UI', []);
 
+    var app = angular.module('SFGame.UI', []);
 
     app.service('GameConfig', [ function(){
 
@@ -25,7 +25,7 @@
             115: GameConfig.keymap.KEY_CROUCH,
             113: GameConfig.keymap.KEY_LEFT,
             100: GameConfig.keymap.KEY_RIGHT,
-            91: GameConfig.keymap.KEY_PUNCH,
+            97: GameConfig.keymap.KEY_PUNCH,
             101: GameConfig.keymap.KEY_KICK
         };
 
@@ -58,33 +58,40 @@
         };
 
 
+        //Configuration des parties
+        GameConfig.fight = {
+            maxHp: 100,
+            damagePunch: 3,
+            damageKick: 5,
+            damageSpecial: 10,
+            damageYolo: 10,
+        };
 
-
-
+        //Stage
+        GameConfig.stage = {
+            height: 300,
+            width: 1000,
+            color: '#ECDDC6',
+            border: '#333333',
+            fonts: {
+                familly: "arial",
+                size: '14px',
+                color: '#333333'
+            }
+        };
 
         return GameConfig;
     }]);
 
 
+
+    /**
+     * Factory Sprite : Affichage d'un Sprite et animation
+     */
     app.factory('Sprite', [ function() {
 
         //Sprite
         function Sprite(options) {
-
-            /**
-             * Option model
-             * options = {
-             *   name: ,
-             *   context: ,
-             *   clipWidth: ,
-             *   clipHeight: ,
-             *   image: ,
-             *   x: ,
-             *   y: ,
-             *   ticksPerFrame: ,
-             *   animations: ,
-             * }
-             */
 
             var $this = {},
                 frameIndex = 0,
@@ -109,7 +116,6 @@
             $this.clipY = 0;
             $this.firstFrame = 0;
             $this.lastFrame = 0;
-            //$this.numberOfFrames = 0;
             $this.loop = false;
             $this.nextAnimation = false;
             $this.running = true;
@@ -118,11 +124,6 @@
 
             //Gère le compte de frame
             var update = function () {
-
-                //Si le sprite est stoppé
-                /*if(!$this.running){
-                    return false;
-                }*/
 
                 //Comptage
                 tickCount += 1;
@@ -138,17 +139,12 @@
                     //Si on dépasse le nombre de frame, on lance l'animation suivante, sinon on stop l'animation
                     if(isOut){
 
-                        //C'est la fin de l'animtion
-                        //$this.callbacks.onAnimationEnd();
                         $this.onAnimationEnd();
 
                         //On lance l'animation suivante si il y en a une, sinon on stop
                         if($this.nextAnimation){
                             $this.gotoAndPlay($this.nextAnimation);
                         }
-                        /*else{
-                            $this.stop();
-                        }*/
                     }
                     else{
                         //Sinon on passe à la frame suivante
@@ -162,19 +158,14 @@
                 }
             };
 
-
-
-
             //Stop animation
             $this.stop = function(){
                 $this.running = false;
-                //$this.callbacks.onAnimationStop();
             };
 
             //Jouer le clip
             $this.play = function(){
                 $this.running = true;
-                //$this.callbacks.onAnimationStart();
             };
 
             //Changer et lancer une animation
@@ -183,40 +174,6 @@
                 $this.goto(animationName, callbacks);
             };
 
-            //Changer et stopper une animation
-            /*
-            $this.gotoAndStop = function(animationName, callbacks){
-                $this.running = false;
-                $this.goto(animationName, callbacks);
-            };*/
-
-
-            //Merge la liste des callback par défaut avec les callbacks spécifiés
-            var mergeCallbacks = function(callbacks){
-                if(!callbacks){
-                    callbacks = {};
-                }
-
-
-
-                //Merge
-                var c = {
-                    onAnimationStart: callbacks.onAnimationStart || function(){},
-                    onAnimationStop: callbacks.onAnimationStop || function(){},
-                };
-
-
-                if(typeof(callbacks.onAnimationEnd) === 'function'){
-
-                    c.onAnimationEnd = callbacks.onAnimationEnd;
-                }
-                else{
-                    c.onAnimationEnd = function(){};
-
-                }
-
-                return c;
-            }
 
             //Changer d'animation.
             $this.goto = function(animationName, callback){
@@ -234,19 +191,14 @@
                 $this.firstFrame = animation[0];
                 $this.lastFrame = animation[1];
                 $this.clipY = animation[2] * $this.clipHeight;
-                //$this.numberOfFrames = animation[2];
                 $this.nextAnimation = animation[3] || false;
                 $this.ticksPerFrame = animation[4] || 0;
                 $this.currentAnimation = animationName;
                 $this.onAnimationEnd = callback || function(){};
-                //$this.callbacks = mergeCallbacks(callbacks);
-
 
                 //Reset des frames
                 tickCount = 0;
                 frameIndex = $this.firstFrame;
-
-                //console.log($this.firstFrame, $this.lastFrame, $this.currentAnimation);
 
                 //Au prochain update, l'animation commencera si l'animation est lancée
             }
@@ -256,24 +208,17 @@
             //Dessine le sprite.
             $this.render = function (x, y) {
 
-                //On met à jour a frame
+                //On met à jour la position des frames
                 update();
-
-                //context.clearRect(position.x, position.y, width, height);
 
                 //Position données en paramètre
                 if(x){$this.x = x;}
                 if(y){$this.y = y;}
 
-                //test collision
                 /*
-                $this.context.fillRect(
-                    $this.x,
-                    $this.y,
-                    $this.clipWidth,
-                    $this.clipHeight
-                );*/
-
+                $this.context.fillStyle = "#000000";
+                $this.context.fillRect($this.x, $this.y, $this.clipWidth, $this.clipHeight);
+                */
 
                 //Dessine l'image avec les nouvelles position
                 $this.context.drawImage(
@@ -293,25 +238,24 @@
         };
 
 
-
         return (Sprite);
     }]);
 
 
 
+    /**
+     * préconstruit des objets sprites pour des objets du stage
+     */
     app.factory('SpriteFactory', ['Sprite', function(Sprite){
 
         var $this = {};
-        //spriteplayer.png
+        //TODO chargement des images
 
         var playerImage = new Image();
         playerImage.src = "../../img/game/spriteplayer.png";
 
         var playerImageReverse = new Image();
         playerImageReverse.src = "../../img/game/spriteplayerreverse.png";
-
-        var yoloImage = new Image();
-        yoloImage.src = "../../img/game/yolo.png";
 
         var animationsNormal = {
             //[clipX, clipY, nbFrame, animation, tickPerFrame]
@@ -340,6 +284,10 @@
             'crouch':   [6, 6, 9, 'crouch', 2],
             'yolo':     [6, 0, 10, false, 2],
         };
+
+
+        var yoloImage = new Image();
+        yoloImage.src = "../../img/game/yolo.png";
 
 
         var animationsYolo = {
@@ -390,775 +338,583 @@
     }]);
 
 
+    app.factory('HpBarSprite', ['GameConfig', function(GameConfig){
+        //Barre de vie
+        function HpBarSprite(options){
 
-    app.factory('StateFactory', ['GameConfig', 'SpriteFactory', function(GameConfig, SpriteFactory){
+            this.context = options.context;
+            this.stageSprite = options.stageSprite;
+            this.stageX = this.stageSprite.stageX + this.stageSprite.x;
+            this.stageY = this.stageSprite.stageY + this.stageSprite.y;
+            this.width = this.stageSprite.width/2;
+            this.type = options.type;
+            this.x = (this.type == 'RIGHT') ? this.stageSprite.width/2 : 0;
+            this.y = 5;
 
-        var factory = {};
+            this.pourcentWidth = 100;
+            this.text = null;
+            this.isUpdated = true;
 
-        factory.STATE_IDLE = "IDLE";
-        factory.STATE_JUMP = "JUMP";
-        factory.STATE_FALL = "FALL";
-        factory.STATE_LEFT = "LEFT";
-        factory.STATE_RIGHT = "RIGHT";
-        factory.STATE_CROUCH = "CROUCH";
-        factory.STATE_PUNCH = "PUNCH";
-        factory.STATE_KICK = "KICK";
-        factory.STATE_SPECIAL = "SPECIAL";
-        factory.STATE_YOLO = "YOLO";
+            var BAR_HEIGHT = 20;
 
-
-        //Utils
-        var isKeyDown = function(key, key2, type){
-            return type == 'down' && key == key2;
-        };
-
-        var isKeyRelease = function(key, key2, type){
-            return type == 'release' && key == key2;
-        };
-/*
-        var isCoupSpecial = function(combinedKeys){
-
-            var specIndex = 0;
-            for(var index = 0; combinedKeys[index] !== undefined; index++){
-                var code = combinedKeys[index];
-
-                //Si la compbinaison ne correspond à rien, on supprime tous les éléments avant
-                if(GameConfig.keymap.KEY_SPECIAL[index] != code && GameConfig.keymap.KEY_SPECIALK[index] != code){
-                    combinedKeys.splice(0, index+1);
+            //Modifie les stats du joueur
+            this.update = function(text, width){
+                if(text){
+                    this.text = text;
                 }
-            }
 
+                console.log("ATTCK UPDATE", text, this.x + this.stageX);
 
-        }*/
-        var changeStateOnMove = function(player){
-            //Si déplacement droit
-            if(player.pressedKeys[GameConfig.keymap.KEY_RIGHT]){
-                player.changeState(new StateRIGHT());
-            }
-            //Si déplacement gauche
-            else if(player.pressedKeys[GameConfig.keymap.KEY_LEFT]){
-                player.changeState(new StateLEFT());
-            }
-            //sinon
-            else{
-                player.changeState(new StateIDLE());
-            }
-        }
+                if(width && width >= 0 && width <= 100) {
+                    this.pourcentWidth = width;
+                }
 
-
-        //Classe State
-        //Stocke le joueur, initialise une variable animation
-        function State(player){
-            this.damageTop = 0;
-            this.damageBottom = 0;
-            this.protectedTop = false;
-            this.protectedBottom = false;
-            this.stateName = 'NONE';
-        }
-
-
-
-
-
-
-        //Classe StateIDLE
-        //Stocke le joueur, initialise une variable animation
-        function StateIDLE(){
-            State.apply(this, arguments);
-            this.stateName = factory.STATE_IDLE;
-        }
-
-        StateIDLE.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateIDLE.prototype.handleKey = function(player, key, type){
-            console.log("IDLE Key = ", key, type);
-
-            var keymap = GameConfig.keymap;
-
-            //TODO : Vérifier spécial Attack
-
-            switch (true) {
-                //Jump
-                case isKeyDown(key, keymap.KEY_JUMP, type):
-                    player.changeState(new StateJUMP(player));
-                    break;
-
-                //Crouch
-                case isKeyDown(key, keymap.KEY_CROUCH, type):
-                    player.changeState(new StateCROUCH(player));
-                    break;
-
-                //PUNCH
-                case isKeyDown(key, keymap.KEY_PUNCH, type):
-                    player.changeState(new StatePUNCH(player));
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_KICK, type):
-                    player.changeState(new StateKICK(player));
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_LEFT, type):
-                    player.changeState(new StateLEFT(player));
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_RIGHT, type):
-                    player.changeState(new StateRIGHT(player));
-                    break;
-            };
-        };
-
-
-        //Lance l'état
-        StateIDLE.prototype.go = function(player){
-            console.log(this.stateName);
-
-            player.velocityX = 0;
-            player.velocityY = 0;
-
-            player.sprite.gotoAndPlay('idle');
-        };
-
-
-
-
-
-        //Classe StateJUMP
-        function StateJUMP(){
-            State.apply(this, arguments);
-            this.stateName = factory.STATE_JUMP;
-            this.protectedBottom = true;
-        }
-
-        StateJUMP.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateJUMP.prototype.handleKey = function(player, key, type){};
-
-        //Lance l'état
-        StateJUMP.prototype.go = function(player){
-            console.log(this.stateName);
-
-            player.velocityY = - GameConfig.physics.velocity.jump;
-            player.sprite.gotoAndPlay('jump', function(){
-                player.changeState(new StateFALL());
-            });
-        };
-
-
-
-
-        //Classe FALL hérite de JUMP pour les evenemen clavier
-        function StateFALL(){
-            State.apply(this, arguments);
-            this.stateName = factory.STATE_FALL;
-            this.protectedBottom = true;
-        }
-
-        StateFALL.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateFALL.prototype.handleKey = function(player, key, type){};
-
-        //Lance l'état
-        StateFALL.prototype.go = function(player){
-
-            //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
-            player.velocityY = +GameConfig.physics.velocity.jump;
-
-            player.sprite.gotoAndPlay('fall', function(){
-                player.velocityY = 0;
-                player.y = player.maxY;
-                changeStateOnMove(player);
-                //player.changeState(new StateIDLE());
-
-            });
-
-        };
-
-
-
-        //Classe StateLEFT
-        function StateLEFT(player){
-            State.apply(this, arguments);
-            this.stateName = factory.STATE_LEFT;
-        }
-
-        StateLEFT.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateLEFT.prototype.handleKey = function(player, key, type){
-
-            var keymap = GameConfig.keymap;
-            switch (true) {
-                //Jump
-                case isKeyDown(key, keymap.KEY_JUMP, type):
-                    player.changeState(new StateJUMP());
-                    break;
-
-                //Crouch
-                case isKeyDown(key, keymap.KEY_CROUCH, type):
-                    player.changeState(new StateCROUCH());
-                    break;
-
-                //PUNCH
-                case isKeyDown(key, keymap.KEY_PUNCH, type):
-                    player.changeState(new StatePUNCH());
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_KICK, type):
-                    player.changeState(new StateKICK());
-                    break;
-
-                //KICK
-                case isKeyRelease(key, keymap.KEY_LEFT, type):
-                    player.changeState(new StateIDLE());
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_RIGHT, type):
-                    player.changeState(new StateRIGHT());
-                    break;
+                this.isUpdated = true;
             };
 
-        };
 
-        //Lance l'état
-        StateLEFT.prototype.go = function(player){
-            console.log(this.stateName);
+            this.render = function(){
 
-            if(player.orientation == 'LEFT'){
-                player.velocityX = - GameConfig.physics.velocity.move;
-                this.animation = "move";
-            }
-            else{
-                player.velocityX = - GameConfig.physics.velocity.back;
-                this.animation = "back";
-            }
-
-            player.sprite.gotoAndPlay(this.animation);
-        };
-
-
-
-        //Classe StateRIGHT
-        function StateRIGHT(player){
-            State.apply(this, arguments);
-            this.stateName = factory.STATE_RIGHT;
-        }
-
-        StateRIGHT.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateRIGHT.prototype.handleKey = function(player, key, type){
-
-            var keymap = GameConfig.keymap;
-            switch (true) {
-                //Jump
-                case isKeyDown(key, keymap.KEY_JUMP, type):
-                    player.changeState(new StateJUMP());
-                    break;
-
-                //Crouch
-                case isKeyDown(key, keymap.KEY_CROUCH, type):
-                    player.changeState(new StateCROUCH());
-                    break;
-
-                //PUNCH
-                case isKeyDown(key, keymap.KEY_PUNCH, type):
-                    player.changeState(new StatePUNCH());
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_KICK, type):
-                    player.changeState(new StateKICK());
-                    break;
-
-                //KICK
-                case isKeyDown(key, keymap.KEY_LEFT, type):
-                    player.changeState(new StateLEFT());
-                    break;
-
-                //KICK
-                case isKeyRelease(key, keymap.KEY_RIGHT, type):
-                    player.changeState(new StateIDLE());
-                    break;
-            };
-        };
-
-        //Lance l'état
-        StateRIGHT.prototype.go = function(player){
-            console.log(this.stateName);
-
-            if(player.orientation == 'RIGHT'){
-                player.velocityX = GameConfig.physics.velocity.move;
-                this.animation = "move";
-            }
-            else{
-                player.velocityX = GameConfig.physics.velocity.back;
-                this.animation = "back";
-            }
-
-            player.sprite.gotoAndPlay(this.animation);
-        };
-
-
-
-
-        //Classe StateCROUCH
-        function StateCROUCH(player){
-            State.apply(this, arguments);
-            this.protectedTop = true;
-            this.stateName = factory.STATE_CROUCH;
-        }
-
-        StateCROUCH.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateCROUCH.prototype.handleKey = function(player, key, type){
-
-            var keymap = GameConfig.keymap;
-            switch (true){
-                case isKeyRelease(key, keymap.KEY_CROUCH, type):
-                    player.changeState(new StateIDLE());
-                    break;
-            };
-        };
-
-        //Lance l'état
-        StateCROUCH.prototype.go = function(player){
-            console.log(this.stateName);
-
-            player.velocityX = 0;
-            player.velocityY = 0;
-
-            //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
-            player.sprite.gotoAndPlay('crouch');
-        };
-
-
-
-
-
-        //Classe StateIDLE
-        //Stocke le joueur, initialise une variable animation
-        function StateATTACK(player){
-            State.apply(this, arguments);
-            this.stateName = 'ATTACK';
-            this.animation = false;
-        }
-
-        StateATTACK.prototype = Object.create(State.prototype);
-
-        //Evenement Clés
-        StateATTACK.prototype.handleKey = function(player, key, type){};
-
-        //Lance l'état
-        StateATTACK.prototype.go = function(player){
-            console.log(this.stateName);
-
-            player.attack();
-
-            if(!this.animation){
-                console.error("Aucune animation fournie pour l'état StateATTACK");
-                return;
-            }
-
-            //player.velocityX = 5;
-            //player.velocityY = 0;
-            if(player.velocityX > 0){
-                player.velocityX = GameConfig.physics.velocity.attackMove;
-            }
-            else if(player.velocityX < 0){
-                player.velocityX = - GameConfig.physics.velocity.attackMove;
-            }
-
-            //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
-            var $this = this;
-            player.sprite.gotoAndPlay(this.animation, function(){
-                //player.changeState(new StateIDLE());
-                changeStateOnMove(player);
-            });
-        };
-
-
-
-        //Attack
-        function StatePUNCH(player){
-            StateATTACK.apply(this, arguments);
-            this.stateName = factory.STATE_PUNCH;
-            //this.animation = "punch";
-            this.animation = "yolo";
-
-
-            this.damageTop = 5;
-        }
-
-        StatePUNCH.prototype = Object.create(StateATTACK.prototype);
-
-        StatePUNCH.prototype.go = function(player){
-            console.log(this.stateName);
-
-            player.attack();
-
-            if(player.velocityX > 0){
-                player.velocityX = GameConfig.physics.velocity.attackMove;
-            }
-            else if(player.velocityX < 0){
-                player.velocityX = - GameConfig.physics.velocity.attackMove;
-            }
-
-            //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
-            player.setSpriteYolo();
-            player.sprite.gotoAndPlay(this.animation, function(){
-                //player.changeState(new StateIDLE());
-                player.removeYoloSprite();
-                changeStateOnMove(player);
-            });
-        };
-
-
-
-
-
-        //Attack
-        function StateKICK(player){
-            StateATTACK.apply(this, arguments);
-            this.stateName = factory.STATE_KICK;
-            this.animation = "kick";
-            this.damageTop = 5;
-
-        }
-
-        StateKICK.prototype = Object.create(StateATTACK.prototype);
-
-
-
-        //Attack
-        function StateSPECIAL(player){
-            StateATTACK.apply(this, arguments);
-            this.stateName = factory.STATE_SPECIAL;
-            this.animation = "special";
-            this.damageTop = 10;
-            this.damageBottom = 10;
-        }
-
-        StateSPECIAL.prototype = Object.create(StateATTACK.prototype);
-
-
-        //Attack
-        function StateYOLO(player){
-            StateATTACK.apply(this, arguments);
-            this.stateName = factory.STATE_YOLO;
-            this.animation = "yolo";
-            this.damageTop = 50;
-            this.damageBottom = 50;
-        }
-
-        StateYOLO.prototype = Object.create(StateATTACK.prototype);
-
-
-
-        factory.getInstance = function(statename){
-            switch(statename){
-
-                case factory.STATE_IDLE:
-                    return new StateIDLE();
-                    break;
-
-                case factory.STATE_JUMP:
-                    return new StateJUMP();
-                    break;
-
-                case factory.STATE_FALL:
-                    return new StateFALL();
-                    break;
-
-                case factory.STATE_CROUCH:
-                    return new StateCROUCH();
-                    break;
-
-                case factory.STATE_LEFT:
-                    return new StateLEFT();
-                    break;
-
-                case factory.STATE_RIGHT:
-                    return new StateRIGHT();
-                    break;
-
-                case factory.STATE_PUNCH:
-                    return new StatePUNCH();
-                    break;
-
-                case factory.STATE_KICK:
-                    return new StateKICK();
-                    break;
-
-                case factory.STATE_SPECIAL:
-                    return new StateSPECIAL();
-                    break;
-
-                case factory.STATE_YOLO:
-                    return new StateYOLO();
-                    break;
-
-                default:
+                if(!this.isUpdated){
                     return false;
-                    break;
-            };
-        };
-
-        return factory;
-    }]);
-
-
-
-
-    app.factory('Player', ['SpriteFactory', 'StateFactory', 'GameConfig', function(SpriteFactory, StateFactory, GameConfig){
-
-
-        function Player(context, name, isOpponent, stageX, stageY, stageW, stageH) {
-
-            this.isOpponent = isOpponent;
-            this.name = name;
-            this.sprite = SpriteFactory.getSpritePlayer(context, name, this.isOpponent);
-            this.context = context;
-            this.orientation = this.isOpponent ? 'LEFT' : 'RIGHT';
-            this.x = 0;
-            this.y = 100;
-            this.velocityX = 0;
-            this.velocityY = 0;
-            this.hp = 100;
-            this.minY = 0;
-            this.maxY = 100;
-            this.pressedKeys = [];
-            this.eventServer = false;
-            this.stageX = stageX;
-            this.stageY = stageY;
-            this.combinedKeys = [];
-            this.yolosprite;
-
-
-            //Joueur collision
-            this.collision = false;
-
-
-            //Set yolo
-            this.setSpriteYolo = function(){
-                this.yolosprite = SpriteFactory.getSpriteYolo(this.context);
-                this.yolosprite.x = this.x + this.sprite.clipWidth + this.stageX ;
-                this.yolosprite.y = this.y - (this.yolosprite.clipHeight / 2) + (this.sprite.clipHeight / 2) + this.stageY;
-                this.yolosprite.gotoAndPlay('normal');
-            };
-
-            //Set yolo
-            this.removeYoloSprite = function(){
-                this.yolosprite = undefined;
-            };
-
-
-            this.render = function () {
-                this.update();
-
-                if (this.sprite !== null) {
-                    this.sprite.render(this.x + this.stageX, this.y + this.stageY);
                 }
 
-                this.context.font = '14px Arial';
-                this.context.textAlign = 'center';
-                this.context.fillStyle = '#AAA';
+                var fullX = this.x + this.stageX;
+                var fullY = this.y + this.stageY;
 
-                var textWidth = this.context.measureText(this.name).width;
+                var containerWidth = ((this.width - 140) * 70)/100;
+                var barWidth = (this.pourcentWidth * containerWidth) / 100;
+                var containerX = ((this.width - containerWidth) / 2) + fullX;
+                var containerY = fullY;
 
+                this.context.clearRect(containerX, containerY, containerWidth, BAR_HEIGHT);
 
-                var textX = this.sprite.x + (this.sprite.clipWidth / 2);
-                var textY = this.sprite.y - 20;
-
-                this.context.fillText(this.name, textX, textY);
-
-
-
-                var x = (!isOpponent) ? 10 : 500;
-                var y = (!isOpponent) ? 50 : 50;
-
-                this.context.font="20px Georgia";
-                this.context.fillText(this.name + " : " + this.hp + "/100", x, y);
-
-                if(this.yolosprite !== undefined){
-                    this.yolosprite.x = this.yolosprite.x + 10;
-                    this.yolosprite.render();
-                }
-
-            };
+                this.context.rect(containerX, containerY, containerWidth, BAR_HEIGHT);
+                this.context.strokeStyle = '#333';
+                this.context.stroke();
+                this.context.fillStyle = "red";
+                this.context.fillRect(containerX + 1, containerY + 1, barWidth - 2, BAR_HEIGHT - 2);
 
 
-            this.bindKey = function(code, type){
-
-                //Récupère le code Key correspondant au code char
-                if(type == 'press'){
-                    if(GameConfig.keymap.KEY_JUMP_CHARS[code] !== undefined){
-                        code = GameConfig.keymap.KEY_JUMP_CHARS[code];
-                    }
-
-                    type = "down";
-                }
-
-                //Conserve les touches
-                if(type == "down"){
-                    this.combinedKeys.push(code);
-                    this.pressedKeys[code] = true;
-                }
-                else if(type == "release"){
-                    this.pressedKeys[code] = false;
-                }
-
-                if(this.currentState){
-                    this.currentState.handleKey(this, code, type);
-                }
-            };
+                //Texte
+                var fontfamilly = GameConfig.stage.fonts.familly;
+                var fontsize = GameConfig.stage.fonts.size;
+                var fontcolor = GameConfig.stage.fonts.color;
+                var textX, textY;
 
 
-            this.changeState = function(state){
-                this.currentState = state;
-                this.currentState.go(this);
-                if(this.eventServer){
-                    window.dispatchEvent(this.eventServer);
-                }
-            };
-
-
-            //Mouvement
-            this.update = function () {
-
-                //MOuvement
-                this.x += this.velocityX;
-                this.y += this.velocityY;
-
-                if(this.y < this.minY){
-                    this.y = this.minY;
-                }
-
-                if(this.y > this.maxY){
-                    this.y = this.maxY;
-                }
-                if(this.x < 0){
-                    this.x = 0;
-                }
-
-                if(this.x > stageW){
-                    this.x = stageW;
-                }
-
-            };
-
-            //Action à effectuer à chaque attaque
-            this.attack = function(){
-                if(this.playerCollision){
-
-                    //attaquant
-                    var damageBottom = this.currentState.damageBottom;
-                    var damageTop = this.currentState.damageTop;
-
-                    //Défenseur
-                    var protectedBottom = this.protectedBottom;
-                    var protectedTop = this.protectedTop;
-
-
-
-                }
-            };
-
-
-            //On définie l'orientation. Si elle est différente de l'orientation courante, on pivote le joueur
-            this.setOrientation = function(orientation){
-                if(this.isOpponent){
-                    //console.log(this.orientation);
-                }
-                if(orientation != this.orientation){
-                    this.reverse();
-                    this.orientation = orientation;
-                }
-            }
-
-            //On inverse le joueur
-            this.reverse = function(){
-                var reverse = this.orientation == "RIGHT";
-                var image = SpriteFactory.getPlayerImage(reverse);
-                var animations = SpriteFactory.getAnimations(reverse);
-
-
-
-
-                //this.sprite.gotoAndPlay(this.sprite.currentAnimation);
-                this.sprite.animations = animations;
-                this.sprite.image = image;
-
-                this.currentState = StateFactory.getInstance(this.currentState.stateName);
-                this.currentState.go(this);
-                //console.log(this.currentState);
-            };
-
-
-            //Retourne le message contenant les données à envoyer au serveur
-            //Reverse toutes les positon
-            this.getMessage = function(){
-                var currentState = this.currentState.stateName;
-                if(currentState == StateFactory.STATE_LEFT){
-                    currentState = StateFactory.STATE_RIGHT;
-                }
-                else if(currentState == StateFactory.STATE_RIGHT){
-                    currentState = StateFactory.STATE_LEFT;
-                }
-
-                return {
-                    currentState: currentState,
-                    x: this.x,
-                    y: this.y,
-                    velocityX: - this.velocityX,
-                    velocityY: this.velocityY,
-                    hp: this.hp
-                };
-            };
-
-            //Retourne le message contenant les données du serveur à binder sur le joueur
-            this.setMessage = function(data){
-
-                var stateName = data.currentState,
-                    x = data.x,
-                    y = data.y,
-                    velocityX = data.velocityX,
-                    velocityY = data.velocityY,
-                    hp = data.hp;
-
-                var newState = StateFactory.getInstance(stateName);
-                if(newState){
-                    this.changeState(newState);
+                if(this.type == 'LEFT'){
+                    textX = fullX + 10;
                 }
                 else{
-                    console.error("State " + stateName + " invalid");
+                    textX = fullX + this.width - 10;
                 }
 
+                textY = fullY + 15;
+
+                this.context.textAlign = this.type.toLowerCase();
+                this.context.font = fontsize + " " + fontfamilly;
+                this.context.fillStyle = fontcolor;
+                this.context.fillText(this.text, textX, textY);
+
+
+                this.isUpdated = false;
+            };
+        };
+
+        return (HpBarSprite);
+    }]);
+
+    //Sprite stage
+    app.factory('StageSprite', ['GameConfig', function(GameConfig){
+
+        function StageSprite(options){
+
+            this.context = options.context;
+            this.width = options.width;
+            this.height = options.height;
+            this.x = 0;
+            this.y = 0;
+            this.stageX = 0;
+            this.stageY = 0;
+            this.timer = 0;
+            /*this.hpUpdatedLEFT = false;
+            this.hpUpdatedRIGHT = false;*/
+
+            var HEADER_HEIGHT = 30;
+            var FOOTER_HEIGHT = 50;
+            var TIMER_WIDTH = 140;
+
+            //Modifie la position du stage
+            this.updatePosition = function(stageX, stageY){
+                //console.log(this.stageX, this.stageY, stageX, stageY);
+                this.stageX = stageX;
+                this.stageY = stageY;
+            };
+
+
+            //Modifie les infos du stage
+            this.updateTime = function(timer){
+                this.timer = timer;
+            };
+
+
+            //Affiche le fond
+            this.renderStage = function(){
+
+                //On clear tout
+                this.context.clearRect(0, 0, this.context.canvas.width, this.context.canvas.height);
+
+                var fullX = this.x + this.stageX;
+                var fullY = this.y + this.stageY;
+                var width = this.width;
+                var height = this.height;
+                var fontfamilly = GameConfig.stage.fonts.familly;
+                var fontsize = GameConfig.stage.fonts.size;
+                var fontcolor = GameConfig.stage.fonts.color;
+
+
+                //STAGE
+                this.context.rect(fullX, fullY, width, height);
+                this.context.strokeStyle = GameConfig.stage.border;
+                this.context.stroke();
+
+
+                //FOOTER
+                var h = FOOTER_HEIGHT;
+                var rectFooterY = fullY + height - h;
+                this.context.textAlign = 'left';
+                this.context.rect(fullX, rectFooterY, width, h);
+                this.context.stroke();
+
+                //CONTROLES
+                this.context.font = fontsize + " " + fontfamilly;
+                this.context.fillStyle = fontcolor;
+                this.context.textAlign = 'left';
+                var textControles = "Controles:";
+                var paddingleft = fullX + 20;
+                var widthText = 0;
+
+                this.context.fillText(textControles, paddingleft, rectFooterY + 20);
+
+                //On ajoute de l'espace à gauche
+                widthText = this.context.measureText(textControles).width;
+                paddingleft += widthText + 20;
+
+                var listeControles = [
+                    ["Move Left [Q]", "Move Right [D]"],
+                    ["Crouch [S]", "Jump [Z]"],
+                    ["Kick [E]", "Punch [A]"],
+                    ["Special 1 [Z + Z + S + S]", "Special YOLO [Q + D + Q + D]"],
+                ];
+
+                for(var index in listeControles){
+                    var controlTab = listeControles[index];
+
+                    this.context.fillText(controlTab[0], paddingleft, rectFooterY + 20);
+                    this.context.fillText(controlTab[1], paddingleft, rectFooterY + 40);
+
+                    paddingleft += Math.max(this.context.measureText(controlTab[0]).width, this.context.measureText(controlTab[1]).width);
+                    paddingleft += 20;
+                }
+
+
+
+                //HEADER
+                this.context.rect(fullX, fullY, width, HEADER_HEIGHT);
+                this.context.stroke();
+
+                this.context.beginPath();
+                this.context.moveTo(fullX + width/2 - TIMER_WIDTH/2, fullY);
+                this.context.lineTo(fullX + width/2 - TIMER_WIDTH/2, fullY + HEADER_HEIGHT);
+                this.context.stroke();
+
+                this.context.beginPath();
+                this.context.moveTo(fullX + width/2 + TIMER_WIDTH/2, fullY);
+                this.context.lineTo(fullX + width/2 + TIMER_WIDTH/2, fullY + HEADER_HEIGHT);
+                this.context.stroke();
             };
 
 
 
 
-            this.currentState = StateFactory.getInstance(StateFactory.STATE_IDLE);
-            this.currentState.go(this);
 
-            //Test collision
-            this.test = function(){
+            //Affiche le stage
+            this.render = function(){
 
-            }
+                var fullX = this.x + this.stageX;
+                var fullY = this.y + this.stageY;
+                var width = this.width;
+                var height = this.height;
+
+
+                //Timer
+                var minutes = Math.floor(this.timer/60);
+                var secondes = Math.round(this.timer - (minutes / 60));
+                minutes = (minutes < 10) ? "0" + minutes : minutes;
+                secondes = (secondes < 10) ? "0" + secondes : secondes;
+                var text = minutes + ":" + secondes;
+
+                //Font
+                var fontfamilly = GameConfig.stage.fonts.familly;
+                var fontsize = GameConfig.stage.fonts.size;
+                var fontcolor = GameConfig.stage.fonts.color;
+                this.context.font = fontsize + " " + fontfamilly;
+                this.context.fillStyle = fontcolor;
+                this.context.textAlign = 'center';
+
+                /*var textWidth = this.context.measureText(text).width;
+                var textHeigt = 20;*/
+
+                var timerX =  width / 2 + fullX;
+                var timerY = fullY + 10;
+                var timerXClear = (width - TIMER_WIDTH) / 2 + fullX;
+
+
+                this.context.clearRect(timerXClear, fullY + 1, TIMER_WIDTH, HEADER_HEIGHT - 2);
+                this.context.fillText(text, timerX, timerY + 10);
+
+                //Clear l'air de jeu
+                this.context.clearRect(fullX + 1, fullY + HEADER_HEIGHT + 1, this.width - 2, this.height - HEADER_HEIGHT - FOOTER_HEIGHT - 2);
+                this.context.clearRect(0, fullY, fullX - 1, fullY + this.height);
+                this.context.clearRect(fullX + this.width + 1, fullY, window.innerWidth, fullY + this.height);
+            };
+
+
+
+            //DEBUG
+            this.afficherInfos = function(){
+                console.log("X" , this.x);
+                console.log("Y" , this.y);
+                console.log("stageX" , this.stageX);
+                console.log("stageY" , this.stageY);
+                console.log("width" , this.width);
+                console.log("height" , this.height);
+            };
+
+
+
+            //this.renderOnce();
 
         }
 
-
-        return (Player);
+        return (StageSprite);
     }]);
+
+
+
+
+
+
+    app.factory('Player', ['SpriteFactory', 'StateFactory', 'HpBarSprite', 'GameConfig',
+        function(SpriteFactory, StateFactory, HpBarSprite, GameConfig){
+
+
+            function Player(options) {
+
+                this.isOpponent = options.isOpponent;
+                this.name = options.name;
+                this.context = options.context;
+                this.stageSprite = options.stageSprite;
+                this.orientation = options.orientation;
+                this.stageX = this.stageSprite.stageX;
+                this.stageY = this.stageSprite.stageY;
+                this.stageW = this.stageSprite.width;
+                this.stageH = this.stageSprite.height;
+                this.eventServer = options.eventServer || false;
+                this.eventEnd = options.eventEnd || false;
+                this.whichPlayer = (options.orientation == 'RIGHT') ? 'LEFT' : 'RIGHT';
+
+                this.sprite = SpriteFactory.getSpritePlayer(options.context, this.name, (this.orientation == 'LEFT' ));
+
+                //Calcule position
+                this.x = 0;
+                this.y = 0;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.minY = 0;
+                this.maxY = 0;
+
+                //Calcul Y
+                this.y =  this.stageSprite.height - this.sprite.clipHeight - 70;
+
+                this.maxY = this.y;
+                this.minY = this.y - 100;
+
+                //States
+                this.hp = GameConfig.fight.hp || 100;
+                this.pressedKeys = [];
+                this.combinedKeys = [];
+
+                //Sprite YOLO (modifier si possible)
+                this.yolosprite;
+
+                //Joueur collision
+                this.playerCollision = false;
+
+
+                //Construction
+                this.hpStat = new HpBarSprite({
+                    context: this.context,
+                    stageSprite: this.stageSprite,
+                    type: this.whichPlayer,
+                });
+
+
+                //Set yolo
+                this.setSpriteYolo = function(){
+
+                    this.yolosprite = SpriteFactory.getSpriteYolo(this.context);
+                    this.yolosprite.y = this.y - (this.yolosprite.clipHeight / 2)  + this.stageY;
+
+                    if(this.orientation == "LEFT"){
+                        console.log("LEFT YOLO");
+                        this.yolosprite.velocityX = -10;
+                        this.yolosprite.x = this.x + this.stageX - this.yolosprite.clipWidth;
+                    }
+                    else{
+                        console.log("RIGHT YOLO");
+                        this.yolosprite.velocityX = 10;
+                        this.yolosprite.x = this.x + this.sprite.clipWidth + this.stageX ;
+                    }
+                    this.yolosprite.gotoAndPlay('normal');
+                };
+
+
+                //Set yolo
+                this.removeYoloSprite = function(){
+                    this.yolosprite = undefined;
+                };
+
+
+                this.render = function () {
+                    this.update();
+
+                    if (this.sprite !== null) {
+                        this.sprite.render(this.x + this.stageX, this.y + this.stageY);
+                    }
+
+                    this.context.font = '14px Arial';
+                    this.context.textAlign = 'center';
+                    this.context.fillStyle = '#AAA';
+
+                    var textWidth = this.context.measureText(this.name).width;
+
+
+                    var textX = this.sprite.x + (this.sprite.clipWidth / 2);
+                    var textY = this.sprite.y - 20;
+
+                    this.context.fillText(this.name, textX, textY);
+
+
+                    this.hpStat.render();
+
+                    if(this.yolosprite !== undefined){
+                        this.yolosprite.x = this.yolosprite.x + this.yolosprite.velocityX;
+                        this.yolosprite.render();
+                    }
+
+                };
+
+
+                this.bindKey = function(code, type){
+
+                    //Récupère le code Key correspondant au code char
+                    if(type == 'press'){
+                        if(GameConfig.keymap.KEY_JUMP_CHARS[code] !== undefined){
+                            code = GameConfig.keymap.KEY_JUMP_CHARS[code];
+                        }
+
+                        type = "down";
+                    }
+
+                    //Conserve les touches
+                    if(type == "down"){
+                        this.combinedKeys.push(code);
+                        this.pressedKeys[code] = true;
+                    }
+                    else if(type == "release"){
+                        this.pressedKeys[code] = false;
+                    }
+
+                    if(this.currentState){
+                        this.currentState.handleKey(this, code, type);
+                    }
+                };
+
+
+                this.changeState = function(state){
+                    this.currentState = state;
+                    this.currentState.go(this);
+                    if(this.eventServer){
+                        window.dispatchEvent(this.eventServer);
+                    }
+                };
+
+
+                //Mouvement
+                this.update = function () {
+
+                    //Mouvement
+                    this.x += this.velocityX;
+                    this.y += this.velocityY;
+
+                    if(this.y < this.minY){
+                        this.y = this.minY;
+                    }
+
+                    if(this.y > this.maxY){
+                        this.y = this.maxY;
+                    }
+
+                    if(this.x < 0){
+                        this.x = 0;
+                    }
+
+                    if(this.x > this.stageW - this.sprite.clipWidth){
+                        this.x = this.stageW - this.sprite.clipWidth;
+                    }
+
+                };
+
+                //Action à effectuer à chaque attaque
+                this.attack = function(){
+                    if(this.playerCollision){
+
+                        //attaquant
+                        var damageBottom = this.currentState.damageBottom;
+                        var damageTop = this.currentState.damageTop;
+
+                        //Défenseur
+                        var protectedBottom = this.playerCollision.currentState.protectedBottom;
+                        var protectedTop = this.playerCollision.currentState.protectedTop;
+
+
+                        if(damageBottom > 0 && !protectedBottom){
+                            this.playerCollision.takeDamage(damageBottom);
+                        }
+
+                        if(damageTop > 0 && !protectedTop){
+                            this.playerCollision.takeDamage(damageTop);
+                        }
+
+                    }
+                };
+
+
+                //Le joueur prend des dommages
+                this.takeDamage = function(damage){
+                    this.hp -= damage;
+
+                    if(this.eventServer){
+                        window.dispatchEvent(this.eventServer);
+                    }
+
+                    if(this.hp <= 0){
+                        this.hp = 0;
+                    }
+
+                    this.updateHp();
+                };
+
+
+                //Met à jour les points de vies
+                this.updateHp = function(){
+                    var percent = (this.hp * 100) / GameConfig.fight.maxHp;
+                    this.hpStat.update(this.name, percent);
+                };
+
+
+                //On définie l'orientation. Si elle est différente de l'orientation courante, on pivote le joueur
+                this.setOrientation = function(orientation){
+                    if(orientation != this.orientation){
+
+                        this.reverse();
+                        this.orientation = orientation;
+                    }
+                }
+
+                //On inverse le joueur
+                this.reverse = function(){
+                    var reverse = this.orientation == "RIGHT";
+                    var image = SpriteFactory.getPlayerImage(reverse);
+                    var animations = SpriteFactory.getAnimations(reverse);
+
+                    //this.sprite.gotoAndPlay(this.sprite.currentAnimation);
+                    this.sprite.animations = animations;
+                    this.sprite.image = image;
+
+                    this.currentState = StateFactory.getInstance(this.currentState.stateName);
+                    this.currentState.go(this);
+                };
+
+
+                //Retourne le message contenant les données à envoyer au serveur
+                //Reverse toutes les positon
+                this.getMessage = function(){
+                    var currentState = this.currentState.stateName;
+                    /*if(currentState == StateFactory.STATE_LEFT){
+                        currentState = StateFactory.STATE_RIGHT;
+                    }
+                    else if(currentState == StateFactory.STATE_RIGHT){
+                        currentState = StateFactory.STATE_LEFT;
+                    }
+                    */
+
+                    return {
+                        currentState: currentState,
+                        x: this.x,
+                        y: this.y,
+                        velocityX: this.velocityX,
+                        velocityY: this.velocityY,
+                        hp: this.hp
+                    };
+                };
+
+                //Retourne le message contenant les données du serveur à binder sur le joueur
+                this.setMessage = function(data){
+
+                    var stateName = data.currentState,
+                        x = data.x,
+                        y = data.y,
+                        velocityX = data.velocityX,
+                        velocityY = data.velocityY,
+                        hp = data.hp;
+
+                    var newState = StateFactory.getInstance(stateName);
+                    if(newState){
+                        this.changeState(newState);
+                        this.x = x;
+                        this.y = y;
+                        this.updateHp(hp);
+                    }
+                    else{
+                        console.error("State " + stateName + " invalid");
+                    }
+
+                };
+
+
+
+                //INIT
+                this.currentState = StateFactory.getInstance(StateFactory.STATE_IDLE);
+                this.currentState.go(this);
+
+                this.updateHp(this.hp);
+            }
+
+
+            return (Player);
+    }]);
+
+
+
+
+
+
+
+
+
+
 
 }());

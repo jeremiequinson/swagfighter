@@ -66,9 +66,21 @@
 
                 //On récupère l'opposant et on lui envoie les infos
                 var opponentSocket = client.userSocket.getOpponentSocket();
-                if(opponentSocket !== undefined){
-                    console.log('Message To ' + opponentSocket.getUsername());
-                    opponentSocket.getSocket().emit('game.get.playerudpate', data);
+
+                if(data.hp <= 0){
+                    if(opponentSocket !== undefined){
+                        console.log("EMIT OPPONNENT");
+                        opponentSocket.getSocket().emit('game.and', {win: true});
+                    }
+                    client.emit('game.end', {win: false});
+
+                    opponentSocket.destroyGame();
+                    client.userSocket.destroyGame();
+                }
+                else{
+                    if(opponentSocket !== null){
+                        opponentSocket.getSocket().emit('game.get.playerudpate', data);
+                    }
                 }
             });
 

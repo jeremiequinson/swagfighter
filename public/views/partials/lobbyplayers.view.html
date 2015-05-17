@@ -8,9 +8,9 @@
         <div ng-repeat="(key, user) in listUsers" class="user-block">
             {{user.username}}
             <button class="btn btn-primary btn-sm right"  ng-hide="user.challenger || user.challenged" ng-click="challengePlayer(key)">Défier</button>
-            <button class="btn btn-danger btn-sm right" ng-show="user.challenger" ng-click="challengePlayer(key)">Accepter le défie !</button>
+            <button class="btn btn-danger btn-sm right" ng-show="user.challenger" ng-click="acceptBattleRequest(key)">Accepter le défie !</button>
             <span ng-show="user.challenged" class="challenge-message"> (Défie lancé)</span>
-            <button class="btn btn-default btn-sm right" ng-show="user.challenged" ng-click="challengePlayer(key)">Annuler</button>
+            <button class="btn btn-default btn-sm right" ng-show="user.challenged" ng-click="cancelChallengePlayer(key)">Annuler</button>
             <div class="clear"></div>
         </div>
     </div>

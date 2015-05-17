@@ -7,8 +7,8 @@
         'flashModule',
         'ngAnimate',
         'btford.socket-io',
-        'SFGame']
-    );
+        'SFGame'
+    ]);
 
     //Routes
     app.config(['$stateProvider', '$urlRouterProvider', '$httpProvider',

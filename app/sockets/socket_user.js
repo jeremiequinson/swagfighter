@@ -62,9 +62,28 @@
                 });
                 return false;
             }
+            else if(targetSocket.hasGame()){
+                client.emit('challenge.send.abort', {
+                    socketid: data.socketid,
+                    message: "Le joueur est déjà en train de jouer"
+                });
+                return false;
+            }
 
             //Sinon on ajoute le target dans la liste
             client.userSocket.addChallenging(targetSocket);
+        });
+
+
+        //Requete annulée par la challenger qui a un moment donné, semble avoir perdu ses balls
+        client.on('challenge.send.remove', function(data){
+
+            //On supprime le client de la liste des joueurs défié
+            var targetSocket = SocketConnectedUser.getUser(data.socketid);
+            targetSocket.removeChallenging(client.id);
+
+            targetSocket.getSocket().emit('challenge.get.remove', {socketid: client.id});
+            client.emit('challenge.send.remove', {socketid: data.socketid})
         });
 
 
@@ -91,48 +110,67 @@
                 success = false;
             }
             else{
-                if(challengerSocket.canChallenge(client.id)){
+                challengerSocket.canChallenge(client.id, function(can, err){
 
-                    //On supprime les challenges en cours
-                    removeAllChallenger(client.userSocket);
-                    removeAllChallenger(challengerSocket);
+                    if(can) {
+                        //On supprime les challenges en cours
+                        removeAllChallenger(client.userSocket);
+                        removeAllChallenger(challengerSocket);
 
-                    //On instancie des jeux
-                    var game = new Game(challengerSocket, client.userSocket);
-                //console.log('GAME ID = ' + game.id);
-
-                    client.userSocket.setOpponentSocket(challengerSocket);
-                    challengerSocket.setOpponentSocket(client.userSocket);
+                        //On instancie des jeux
+                        //var game = new Game(challengerSocket, client.userSocket);
 
 
-                    //On notifie les deux joueurs
-                    client.emit('challenge.togame', {
-                        socketid: data.socketid,
-                        gameid: game.id,
-                        istarget: true
-                    });
+                        client.userSocket.setOpponentSocket(challengerSocket);
+                        client.userSocket.typeJoueur = 'LEFT';
+                        challengerSocket.setOpponentSocket(client.userSocket);
+                        challengerSocket.typeJoueur = 'RIGHT';
 
-                    challengerSocket.getSocket().emit('challenge.togame', {
-                        socketid: client.id,
-                        gameid: game.id,
-                        istarget: false
-                    });
 
-                    success = true;
-                }
-                else{
-                    success = false
-                    message = "Une erreur s'est produite. Impossible de lancer une partie.";
-                }
+                        //On notifie les deux joueurs
+                        client.emit('challenge.togame', {
+                            socketid: data.socketid,
+                            //gameid:   game.id,
+                            istarget: true
+                        });
+
+                        challengerSocket.getSocket().emit('challenge.togame', {
+                            socketid: client.id,
+                            //gameid:   game.id,
+                            istarget: false
+                        });
+
+                        success = true;
+                    }
+                    else{
+                        success = false
+                        message = (err) ? err : "Une erreur s'est produite. Impossible de lancer une partie.";
+                        client.emit('challenge.get.abort', {socketid: data.socketid, message: message});
+                    }
+
+                });
             }
 
-            //Si le joueur n'est plus disponible
-            if(!success){
-                client.emit('challenge.get.abort', {socketid: data.socketid, message: message});
-            }
         });
 
 
+        client.on('game.ready', function(){
+            var userSocket = client.userSocket;
+            if(!userSocket.getOpponentSocket()){
+                client.emit('game.abort', "Impossible de joindre un autre joueur.");
+                return;
+            }
+
+            var opponentSocket = userSocket.getOpponentSocket();
+            var type = opponentSocket.typeJoueur;
+            opponentSocket.opponentReady = true;
+
+            //Ready lorsque les deux joueur sont ready
+            if(userSocket.opponentReady){
+                opponentSocket.getSocket().emit('game.ready', {type: type});
+                client.emit('game.ready', {type: userSocket.typeJoueur});
+            }
+        });
 
 
         //Déconnexion
@@ -148,6 +186,11 @@
             });
 
             removeAllChallenger(userSocket);
+
+            if(userSocket.hasGame() && userSocket.getOpponentSocket() !== null){
+                //var socket = userSocket.getOpponentSocket().getSocket();
+                //socket.emit('game.user.deconnected');
+            }
 
             SocketConnectedUser.removeUser(userSocket.getSocketId());
         });

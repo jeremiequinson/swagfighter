@@ -218,6 +218,13 @@
                     console.log('challenge sent to ' + socketid);
                 };
 
+                //lorsqu'on lance un défie
+                $scope.cancelChallengePlayer = function(socketid){
+                    $scope.listUsers[socketid].challenged = true;
+                    SocketService.emit('challenge.send.remove', {socketid: socketid});
+                    console.log('challenge sent to ' + socketid);
+                };
+
 
 
                 //Action utilisateur sur le message Challenge

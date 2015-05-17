@@ -45,6 +45,7 @@
 
             //Ignore battle from flash
             $scope.ignoreBattleRequest = function(socketid){
+                console.log(socketid);
                 $rootScope.$broadcast('challenge.get.response', {action: "challenge.get.remove", socketid: socketid});
             }
 

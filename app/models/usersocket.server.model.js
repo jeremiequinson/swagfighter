@@ -16,8 +16,11 @@
         var currentLocation = null;    //Localisation de l'utilisateur sur l'application
         var challengers = {};          //Liste de challengers
         var challenging = {};          //Liste de joueur challengé
-        var opponentSocket = undefined;
+        var opponentSocket = null;
+        var typeJoueur = null;
+        var opponentReady = false;
         var $this = undefined;
+        $this = this;
 
 
         //Retourne le socket id
@@ -57,7 +60,7 @@
 
         //Un jeu est en cours?
         this.hasGame = function(){
-            return opponentSocket !== undefined;
+            return opponentSocket !== null && opponentSocket !== undefined;
         };
 
         //Récupère le userSocket de son adversaire
@@ -80,6 +83,10 @@
         };
 
 
+        this.destroyGame = function(){
+            opponentSocket = null;
+            this.opponentReady = false;
+        }
 
 
 
@@ -111,6 +118,8 @@
             var targetid = userSocket.getSocketId();
             var targetSocket = userSocket.getSocket();
 
+
+
             //Si une requete est déjà en cours, on supprime le timer et on enregistre une nouvelle requete
             if(challenging[targetid] !== undefined){
                 clearTimeout(challenging[targetid].timeout);
@@ -119,14 +128,15 @@
                 //Lorsque la requete expire, on supprime le challenge
                 var expireChallenge = function(){
                     $this.removeChallenging(targetid); //On supprime le target de la liste du challenger
-                    if(targetSocket !== undefined) {
-                        targetSocket.removeChallenger(socket.id); //On supprime le challenger de la liste du target
+                    if(userSocket !== undefined) {
+                        userSocket.removeChallenger(socket.id); //On supprime le challenger de la liste du target
                     }
                 };
 
                 //Nouveau challenge
                 challenging[targetid] = {
                     timeout: setTimeout(expireChallenge, 30000)
+                    //timeout: setTimeout(expireChallenge, 5000)
                 };
             }
 
@@ -173,14 +183,18 @@
 
             //Si le joueur n'apparait plus dans la liste des joueurs défié, la requete a expirée
             if(challenging[targetid] === undefined){
-                return false;
+                return callback(false, "Le joueur n'est plus connecté");
+                //return false;
             }
 
             //Si le challenger n'est plus sur le Lobby
             if(currentLocation !== UserSocket.LOCATION_LOBBY){
-                return false;
+                return callback(false, "Le joueur n'est plus disponible");
+                //return false;
             }
-            return true;
+
+            return callback(true,"");
+            //return true;
         };
 
 
