@@ -20,6 +20,16 @@
         GameConfig.keymap.KEY_PUNCH = 65; //A
         GameConfig.keymap.KEY_KICK = 69; //E
 
+        GameConfig.keymap.KEY_JUMP_CHARS = {
+            122: GameConfig.keymap.KEY_JUMP,
+            115: GameConfig.keymap.KEY_CROUCH,
+            113: GameConfig.keymap.KEY_LEFT,
+            100: GameConfig.keymap.KEY_RIGHT,
+            91: GameConfig.keymap.KEY_PUNCH,
+            101: GameConfig.keymap.KEY_KICK
+        };
+
+
         //Coup spécial 1
         GameConfig.keymap.KEY_SPECIAL = [
             GameConfig.keymap.KEY_JUMP,
@@ -42,7 +52,8 @@
             velocity: {
                 move: 6,
                 back: 3,
-                jump: 2
+                jump: 2,
+                attackMove: 2
             }
         };
 
@@ -101,7 +112,7 @@
             //$this.numberOfFrames = 0;
             $this.loop = false;
             $this.nextAnimation = false;
-            //$this.running = true;
+            $this.running = true;
             $this.callbacks = {};
             $this.onAnimationEnd = function(){};
 
@@ -109,7 +120,7 @@
             var update = function () {
 
                 //Si le sprite est stoppé
-               /* if(!$this.running){
+                /*if(!$this.running){
                     return false;
                 }*/
 
@@ -155,20 +166,20 @@
 
 
             //Stop animation
-            /*$this.stop = function(){
+            $this.stop = function(){
                 $this.running = false;
                 //$this.callbacks.onAnimationStop();
-            };*/
+            };
 
             //Jouer le clip
             $this.play = function(){
-                //$this.running = true;
+                $this.running = true;
                 //$this.callbacks.onAnimationStart();
             };
 
             //Changer et lancer une animation
             $this.gotoAndPlay = function(animationName, callbacks){
-                //$this.running = true;
+                $this.running = true;
                 $this.goto(animationName, callbacks);
             };
 
@@ -231,11 +242,11 @@
                 //$this.callbacks = mergeCallbacks(callbacks);
 
 
-
                 //Reset des frames
                 tickCount = 0;
                 frameIndex = $this.firstFrame;
 
+                //console.log($this.firstFrame, $this.lastFrame, $this.currentAnimation);
 
                 //Au prochain update, l'animation commencera si l'animation est lancée
             }
@@ -255,12 +266,14 @@
                 if(y){$this.y = y;}
 
                 //test collision
-                /*$this.context.fillRect(
+                /*
+                $this.context.fillRect(
                     $this.x,
                     $this.y,
                     $this.clipWidth,
                     $this.clipHeight
                 );*/
+
 
                 //Dessine l'image avec les nouvelles position
                 $this.context.drawImage(
@@ -294,28 +307,58 @@
         var playerImage = new Image();
         playerImage.src = "../../img/game/spriteplayer.png";
 
+        var playerImageReverse = new Image();
+        playerImageReverse.src = "../../img/game/spriteplayerreverse.png";
 
-        $this.getSpritePlayer = function(context, name){
+        var animationsNormal = {
+            //[clipX, clipY, nbFrame, animation, tickPerFrame]
+            'idle':     [0, 3, 1, 'idle', 2],
+            'jump':     [0, 3, 8, false, 2],
+            'fall':     [3, 6, 8, false, 2],
+            'punch':    [0, 2, 2, false, 2],
+            'kick':     [0, 4, 6, false, 2],
+            'special':  [0, 4, 7, false, 2],
+            'move':     [0, 2, 3, 'move', 2],
+            'back':     [4, 2, 3, 'back', 2],
+            'crouch':   [0, 0, 9, 'crouch', 2],
+        };
+
+
+        var animationsReverse = {
+            'idle':     [6, 3, 1, 'idle', 2],
+            'jump':     [6, 3, 8, false, 2],
+            'fall':     [3, 0, 8, false, 2],
+            'punch':    [6, 4, 2, false, 2],
+            'kick':     [6, 2, 6, false, 2],
+            'special':  [6, 2, 7, false, 2],
+            'move':     [6, 4, 3, 'move', 2],
+            'back':     [2, 4, 3, 'back', 2],
+            'crouch':   [6, 6, 9, 'crouch', 2],
+        };
+
+
+
+        $this.getAnimations = function(reverse){
+            return reverse ? animationsReverse : animationsNormal;
+        };
+
+        $this.getPlayerImage = function(reverse){
+            return reverse ? playerImageReverse : playerImage ;
+        }
+
+
+
+
+        $this.getSpritePlayer = function(context, name, reverse){
 
             return new Sprite({
                 name: name || "Player",
                 context: context,
                 clipWidth: 70,
                 clipHeight: 80,
-                image: playerImage,
+                image: reverse ? playerImageReverse : playerImage,
                 ticksPerFrame: 0,
-                animations: {
-                    //[clipX, clipY, nbFrame, animation, tickPerFrame]
-                    'idle':     [0, 3, 1, 'idle', 2],
-                    'jump':     [0, 3, 8, false, 2],
-                    'fall':     [3, 6, 8, false, 2],
-                    'punch':    [0, 2, 2, false, 2],
-                    'kick':     [0, 4, 6, false, 2],
-                    'special':  [0, 4, 7, false, 2],
-                    'move':     [0, 2, 3, 'move', 2],
-                    'back':     [4, 2, 3, 'back', 2],
-                    'crouch':   [0, 0, 9, 'crouch', 2],
-                }
+                animations: reverse ? animationsReverse : animationsNormal
             });
         };
 
@@ -324,17 +367,24 @@
     }]);
 
 
-    app.factory('StateFactory', ['GameConfig', function(GameConfig){
-        /**
-         * GameConfig.physics = {
-            velocity: {
-                move: 10,
-                back: 7,
-                jump: 0
-            }
-        };
-         */
 
+    app.factory('StateFactory', ['GameConfig', function(GameConfig){
+
+        var factory = {};
+
+        factory.STATE_IDLE = "IDLE";
+        factory.STATE_JUMP = "JUMP";
+        factory.STATE_FALL = "FALL";
+        factory.STATE_LEFT = "LEFT";
+        factory.STATE_RIGHT = "RIGHT";
+        factory.STATE_CROUCH = "CROUCH";
+        factory.STATE_PUNCH = "PUNCH";
+        factory.STATE_KICK = "KICK";
+        factory.STATE_SPECIAL = "SPECIAL";
+        factory.STATE_YOLO = "YOLO";
+
+
+        //Utils
         var isKeyDown = function(key, key2, type){
             return type == 'down' && key == key2;
         };
@@ -342,7 +392,35 @@
         var isKeyRelease = function(key, key2, type){
             return type == 'release' && key == key2;
         };
+/*
+        var isCoupSpecial = function(combinedKeys){
 
+            var specIndex = 0;
+            for(var index = 0; combinedKeys[index] !== undefined; index++){
+                var code = combinedKeys[index];
+
+                //Si la compbinaison ne correspond à rien, on supprime tous les éléments avant
+                if(GameConfig.keymap.KEY_SPECIAL[index] != code && GameConfig.keymap.KEY_SPECIALK[index] != code){
+                    combinedKeys.splice(0, index+1);
+                }
+            }
+
+
+        }*/
+        var changeStateOnMove = function(player){
+            //Si déplacement droit
+            if(player.pressedKeys[GameConfig.keymap.KEY_RIGHT]){
+                player.changeState(new StateRIGHT());
+            }
+            //Si déplacement gauche
+            else if(player.pressedKeys[GameConfig.keymap.KEY_LEFT]){
+                player.changeState(new StateLEFT());
+            }
+            //sinon
+            else{
+                player.changeState(new StateIDLE());
+            }
+        }
 
 
         //Classe State
@@ -352,7 +430,10 @@
             this.damageBottom = 0;
             this.protectedTop = false;
             this.protectedBottom = false;
+            this.stateName = 'NONE';
         }
+
+
 
 
 
@@ -361,6 +442,7 @@
         //Stocke le joueur, initialise une variable animation
         function StateIDLE(){
             State.apply(this, arguments);
+            this.stateName = factory.STATE_IDLE;
         }
 
         StateIDLE.prototype = Object.create(State.prototype);
@@ -370,6 +452,7 @@
             console.log("IDLE Key = ", key, type);
 
             var keymap = GameConfig.keymap;
+
             //TODO : Vérifier spécial Attack
 
             switch (true) {
@@ -408,7 +491,7 @@
 
         //Lance l'état
         StateIDLE.prototype.go = function(player){
-            console.log('State IDLE');
+            console.log(this.stateName);
 
             player.velocityX = 0;
             player.velocityY = 0;
@@ -423,6 +506,7 @@
         //Classe StateJUMP
         function StateJUMP(){
             State.apply(this, arguments);
+            this.stateName = factory.STATE_JUMP;
             this.protectedBottom = true;
         }
 
@@ -433,7 +517,7 @@
 
         //Lance l'état
         StateJUMP.prototype.go = function(player){
-            console.log('State JUMP');
+            console.log(this.stateName);
 
             player.velocityY = - GameConfig.physics.velocity.jump;
             player.sprite.gotoAndPlay('jump', function(){
@@ -447,6 +531,7 @@
         //Classe FALL hérite de JUMP pour les evenemen clavier
         function StateFALL(){
             State.apply(this, arguments);
+            this.stateName = factory.STATE_FALL;
             this.protectedBottom = true;
         }
 
@@ -457,7 +542,6 @@
 
         //Lance l'état
         StateFALL.prototype.go = function(player){
-            console.log('State FALL');
 
             //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
             player.velocityY = +GameConfig.physics.velocity.jump;
@@ -465,19 +549,9 @@
             player.sprite.gotoAndPlay('fall', function(){
                 player.velocityY = 0;
                 player.y = player.maxY;
+                changeStateOnMove(player);
+                //player.changeState(new StateIDLE());
 
-                //Si déplacement droit
-                if(player.velocityX > 0){
-                    player.changeState(new StateRIGHT());
-                }
-                //Si déplacement gauche
-                else if(player.velocityX < 0){
-                    player.changeState(new StateLEFT());
-                }
-                //sinon
-                else{
-                    player.changeState(new StateIDLE());
-                }
             });
 
         };
@@ -487,6 +561,7 @@
         //Classe StateLEFT
         function StateLEFT(player){
             State.apply(this, arguments);
+            this.stateName = factory.STATE_LEFT;
         }
 
         StateLEFT.prototype = Object.create(State.prototype);
@@ -531,6 +606,7 @@
 
         //Lance l'état
         StateLEFT.prototype.go = function(player){
+            console.log(this.stateName);
 
             if(player.orientation == 'LEFT'){
                 player.velocityX = - GameConfig.physics.velocity.move;
@@ -549,6 +625,7 @@
         //Classe StateRIGHT
         function StateRIGHT(player){
             State.apply(this, arguments);
+            this.stateName = factory.STATE_RIGHT;
         }
 
         StateRIGHT.prototype = Object.create(State.prototype);
@@ -592,6 +669,7 @@
 
         //Lance l'état
         StateRIGHT.prototype.go = function(player){
+            console.log(this.stateName);
 
             if(player.orientation == 'RIGHT'){
                 player.velocityX = GameConfig.physics.velocity.move;
@@ -612,6 +690,7 @@
         function StateCROUCH(player){
             State.apply(this, arguments);
             this.protectedTop = true;
+            this.stateName = factory.STATE_CROUCH;
         }
 
         StateCROUCH.prototype = Object.create(State.prototype);
@@ -629,7 +708,7 @@
 
         //Lance l'état
         StateCROUCH.prototype.go = function(player){
-            console.log('State CROUCH');
+            console.log(this.stateName);
 
             player.velocityX = 0;
             player.velocityY = 0;
@@ -646,6 +725,7 @@
         //Stocke le joueur, initialise une variable animation
         function StateATTACK(player){
             State.apply(this, arguments);
+            this.stateName = 'ATTACK';
             this.animation = false;
         }
 
@@ -656,20 +736,29 @@
 
         //Lance l'état
         StateATTACK.prototype.go = function(player){
-            console.log('State ATTACK' + this.animation);
+            console.log(this.stateName);
+
+            player.attack();
 
             if(!this.animation){
                 console.error("Aucune animation fournie pour l'état StateATTACK");
                 return;
             }
 
-            player.velocityX = 0;
-            player.velocityY = 0;
+            //player.velocityX = 5;
+            //player.velocityY = 0;
+            if(player.velocityX > 0){
+                player.velocityX = GameConfig.physics.velocity.attackMove;
+            }
+            else if(player.velocityX < 0){
+                player.velocityX = - GameConfig.physics.velocity.attackMove;
+            }
 
             //Lance l'animation, à la fin de l'animation, l'état redevient IDLE
             var $this = this;
             player.sprite.gotoAndPlay(this.animation, function(){
-                player.changeState(new StateIDLE());
+                //player.changeState(new StateIDLE());
+                changeStateOnMove(player);
             });
         };
 
@@ -678,6 +767,7 @@
         //Attack
         function StatePUNCH(player){
             StateATTACK.apply(this, arguments);
+            this.stateName = factory.STATE_PUNCH;
             this.animation = "punch";
             this.damageTop = 5;
         }
@@ -690,6 +780,7 @@
         //Attack
         function StateKICK(player){
             StateATTACK.apply(this, arguments);
+            this.stateName = factory.STATE_KICK;
             this.animation = "kick";
             this.damageTop = 5;
         }
@@ -701,6 +792,7 @@
         //Attack
         function StateSPECIAL(player){
             StateATTACK.apply(this, arguments);
+            this.stateName = factory.STATE_SPECIAL;
             this.animation = "special";
             this.damageTop = 10;
             this.damageBottom = 10;
@@ -712,6 +804,7 @@
         //Attack
         function StateYOLO(player){
             StateATTACK.apply(this, arguments);
+            this.stateName = factory.STATE_YOLO;
             this.animation = "special";
             this.damageTop = 50;
             this.damageBottom = 50;
@@ -721,36 +814,71 @@
 
 
 
-        var Factory = {};
-
-        Factory.getInstance = function(statename){
+        factory.getInstance = function(statename){
             switch(statename){
 
-                default:
+                case factory.STATE_IDLE:
                     return new StateIDLE();
                     break;
 
+                case factory.STATE_JUMP:
+                    return new StateJUMP();
+                    break;
+
+                case factory.STATE_FALL:
+                    return new StateFALL();
+                    break;
+
+                case factory.STATE_CROUCH:
+                    return new StateCROUCH();
+                    break;
+
+                case factory.STATE_LEFT:
+                    return new StateLEFT();
+                    break;
+
+                case factory.STATE_RIGHT:
+                    return new StateRIGHT();
+                    break;
+
+                case factory.STATE_PUNCH:
+                    return new StatePUNCH();
+                    break;
+
+                case factory.STATE_KICK:
+                    return new StateKICK();
+                    break;
+
+                case factory.STATE_SPECIAL:
+                    return new StateSPECIAL();
+                    break;
+
+                case factory.STATE_YOLO:
+                    return new StateYOLO();
+                    break;
+
+                default:
+                    return false;
+                    break;
             };
         };
 
-
-        return Factory;
+        return factory;
     }]);
 
 
 
 
-    app.factory('Player', ['SpriteFactory', 'StateFactory', function(SpriteFactory, StateFactory){
+    app.factory('Player', ['SpriteFactory', 'StateFactory', 'GameConfig', function(SpriteFactory, StateFactory, GameConfig){
 
 
-        function Player(context, name) {
+        function Player(context, name, isOpponent, stageX, stageY, stageW, stageH) {
 
-            //var $this = {};
-
+            this.isOpponent = isOpponent;
             this.name = name;
-            this.sprite = SpriteFactory.getSpritePlayer(context, name);
+            this.sprite = SpriteFactory.getSpritePlayer(context, name, this.isOpponent);
             this.context = context;
-            this.orientation = 'RIGHT';
+            this.orientation = this.isOpponent ? 'LEFT' : 'RIGHT';
             this.x = 0;
             this.y = 100;
             this.velocityX = 0;
@@ -758,25 +886,69 @@
             this.hp = 100;
             this.minY = 0;
             this.maxY = 100;
+            this.pressedKeys = [];
+            this.eventServer = false;
+            this.stageX = stageX;
+            this.stageY = stageY;
+            this.combinedKeys = [];
+
+
+            //Joueur collision
+            this.collision = false;
+
 
 
 
 
             this.render = function () {
-                this.move();
+                this.update();
 
                 if (this.sprite !== null) {
-                    this.sprite.render(this.x, this.y);
+                    this.sprite.render(this.x + this.stageX, this.y + this.stageY);
                 }
 
-                var x = (this.name == "PLAYER1") ? 10 : 500;
-                var y = (this.name == "PLAYER1") ? 50 : 50;
+                this.context.font = '14px Arial';
+                this.context.textAlign = 'center';
+                this.context.fillStyle = '#AAA';
+
+                var textWidth = this.context.measureText(this.name).width;
+
+
+                var textX = this.sprite.x + (this.sprite.clipWidth / 2);
+                var textY = this.sprite.y - 20;
+
+                this.context.fillText(this.name, textX, textY);
+
+
+
+                var x = (!isOpponent) ? 10 : 500;
+                var y = (!isOpponent) ? 50 : 50;
 
                 this.context.font="20px Georgia";
                 this.context.fillText(this.name + " : " + this.hp + "/100", x, y);
             };
 
+
             this.bindKey = function(code, type){
+
+                //Récupère le code Key correspondant au code char
+                if(type == 'press'){
+                    if(GameConfig.keymap.KEY_JUMP_CHARS[code] !== undefined){
+                        code = GameConfig.keymap.KEY_JUMP_CHARS[code];
+                    }
+
+                    type = "down";
+                }
+
+                //Conserve les touches
+                if(type == "down"){
+                    this.combinedKeys.push(code);
+                    this.pressedKeys[code] = true;
+                }
+                else if(type == "release"){
+                    this.pressedKeys[code] = false;
+                }
+
                 if(this.currentState){
                     this.currentState.handleKey(this, code, type);
                 }
@@ -786,21 +958,129 @@
             this.changeState = function(state){
                 this.currentState = state;
                 this.currentState.go(this);
+                if(this.eventServer){
+                    window.dispatchEvent(this.eventServer);
+                }
             };
 
-            this.move = function () {
 
+            //Mouvement
+            this.update = function () {
+
+                //MOuvement
                 this.x += this.velocityX;
                 this.y += this.velocityY;
 
-                if(this.y < this.y){
-                    this.velocityY = -this.velocityY;
-                    this.y =  this.y;
+                if(this.y < this.minY){
+                    this.y = this.minY;
+                }
+
+                if(this.y > this.maxY){
+                    this.y = this.maxY;
+                }
+                if(this.x < 0){
+                    this.x = 0;
+                }
+
+                if(this.x > stageW){
+                    this.x = stageW;
                 }
 
             };
 
-            this.currentState = StateFactory.getInstance();
+            //Action à effectuer à chaque attaque
+            this.attack = function(){
+                if(this.playerCollision){
+
+                    //attaquant
+                    var damageBottom = this.currentState.damageBottom;
+                    var damageTop = this.currentState.damageTop;
+
+                    //Défenseur
+                    var protectedBottom = this.protectedBottom;
+                    var protectedTop = this.protectedTop;
+
+
+
+                }
+            };
+
+
+            //On définie l'orientation. Si elle est différente de l'orientation courante, on pivote le joueur
+            this.setOrientation = function(orientation){
+                if(this.isOpponent){
+                    //console.log(this.orientation);
+                }
+                if(orientation != this.orientation){
+                    this.reverse();
+                    this.orientation = orientation;
+                }
+            }
+
+            //On inverse le joueur
+            this.reverse = function(){
+                var reverse = this.orientation == "RIGHT";
+                var image = SpriteFactory.getPlayerImage(reverse);
+                var animations = SpriteFactory.getAnimations(reverse);
+
+
+
+
+                //this.sprite.gotoAndPlay(this.sprite.currentAnimation);
+                this.sprite.animations = animations;
+                this.sprite.image = image;
+
+                this.currentState = StateFactory.getInstance(this.currentState.stateName);
+                this.currentState.go(this);
+                //console.log(this.currentState);
+            };
+
+
+            //Retourne le message contenant les données à envoyer au serveur
+            //Reverse toutes les positon
+            this.getMessage = function(){
+                var currentState = this.currentState.stateName;
+                if(currentState == StateFactory.STATE_LEFT){
+                    currentState = StateFactory.STATE_RIGHT;
+                }
+                else if(currentState == StateFactory.STATE_RIGHT){
+                    currentState = StateFactory.STATE_LEFT;
+                }
+
+                return {
+                    currentState: currentState,
+                    x: this.x,
+                    y: this.y,
+                    velocityX: - this.velocityX,
+                    velocityY: this.velocityY,
+                    hp: this.hp
+                };
+            };
+
+            //Retourne le message contenant les données du serveur à binder sur le joueur
+            this.setMessage = function(data){
+
+                var stateName = data.currentState,
+                    x = data.x,
+                    y = data.y,
+                    velocityX = data.velocityX,
+                    velocityY = data.velocityY,
+                    hp = data.hp;
+
+                var newState = StateFactory.getInstance(stateName);
+                if(newState){
+                    this.changeState(newState);
+                }
+                else{
+                    console.error("State " + stateName + " invalid");
+                }
+
+            };
+
+
+
+
+            this.currentState = StateFactory.getInstance(StateFactory.STATE_IDLE);
             this.currentState.go(this);
 
             //Test collision

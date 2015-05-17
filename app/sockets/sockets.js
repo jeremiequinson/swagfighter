@@ -55,6 +55,26 @@
             });
 
 
+            client.on('game.set.playerudpate', function(data){
+
+                console.log('Update game ',  data);
+                //Si aucun jeu n'est en cours
+                /*if(!client.userSocket.hasGame() && false){ //TODO : Enlever le false pour les tests
+                    client.emit('socket.error.game', {error: true, message: "Aucun jeu lancé"});
+                    return false;
+                }*/
+
+                //On récupère l'opposant et on lui envoie les infos
+                var opponentSocket = client.userSocket.getOpponentSocket();
+                if(opponentSocket !== undefined){
+                    console.log('Message To ' + opponentSocket.getUsername());
+                    opponentSocket.getSocket().emit('game.get.playerudpate', data);
+                }
+            });
+
+
+
+
             //On ajoute les evenements des différents modules
             require('./socket_chat')(client);
             require('./socket_user')(client);

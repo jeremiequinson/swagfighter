@@ -99,7 +99,11 @@
 
                     //On instancie des jeux
                     var game = new Game(challengerSocket, client.userSocket);
-                console.log('GAME ID = ' + game.id);
+                //console.log('GAME ID = ' + game.id);
+
+                    client.userSocket.setOpponentSocket(challengerSocket);
+                    challengerSocket.setOpponentSocket(client.userSocket);
+
 
                     //On notifie les deux joueurs
                     client.emit('challenge.togame', {

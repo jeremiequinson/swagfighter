@@ -10,7 +10,7 @@
 
 
     //Jeu
-    app.directive('gameCanvas', ['Player', function (Player) {
+    app.directive('gameCanvas', ['Player', 'SocketService', function (Player, SocketService) {
         "use strict";
         return {
             restrict: 'E',
@@ -23,35 +23,156 @@
                                                 window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
                                                 */
 
+
+
+                function Game(){
+
+                }
+
+
                 var interval = null;
                 var canvas = element[0];
                 var context = canvas.getContext('2d');
-                var player = new Player(context, "PLAYER1");
-                var player2 = new Player(context, "PLAYER2");
 
-                player2.x = 1000;
 
-                var collision = function(player1, player2){
 
-                    var r1position = {
-                        left: player1.x + 10,
-                        top: player1.y + 10,
-                        right: player1.x + player1.sprite.clipWidth - 10,
-                        bottom: player1.y + player1.sprite.clipHeight - 10,
+
+                function Stage(context){
+
+                    var $this = this;
+                    this.width = 1000;
+                    this.height = 300;
+                    this.context = context;
+                    this.totalWidth = window.innerWidth;
+                    this.totalHeight = window.innerHeight;
+                    this.x = (this.totalWidth - this.width) / 2;
+                    this.y = (this.totalHeight - this.height) / 2;
+
+                    this.player1;
+                    this.player2;
+
+                    var eventNotifieServer = new Event('notifieServer');
+
+                    //Retourne "COLLISION", "LEFT" orienté à gauche, "RIGHT" sinon
+                    var getOrientationPlayer = function(player1, player2){
+
+                        var p1 = {
+                            left: player1.x + 10,
+                            right: player1.x + player1.sprite.clipWidth - 10,
+                        };
+
+                        var p2 = {
+                            left: player2.x + 10,
+                            right: player2.x + player2.sprite.clipWidth - 10,
+                        };
+
+
+                        if(!(p2.left > p1.right || p2.right < p1.left )){
+                            return "COLLISION";
+                        }
+                        else if(p1.right < p2.left){
+                            return "RIGHT";
+                        }
+                        else{
+                            return "LEFT";
+                        }
                     };
 
-                    var r2position = {
-                        left: player2.x + 10,
-                        top: player2.y + 10,
-                        right: player2.x + player2.sprite.clipWidth - 10,
-                        bottom: player2.y + player2.sprite.clipHeight- 10,
+
+
+                    this.update = function(){
+                        var orientation = getOrientationPlayer(this.player1, this.player2);
+
+                        if(orientation == "COLLISION"){
+                            this.player1.playerCollision = this.player2;
+                            this.player2.playerCollision = this.player1;
+                        }
+                        else{
+                            var orientationPlayer2 = (orientation == "RIGHT") ? "LEFT" : "RIGHT";
+                            this.player1.setOrientation(orientation);
+                            this.player2.setOrientation(orientationPlayer2);
+                            this.player1.playerCollision = false;
+                            this.player2.playerCollision = false;
+                        }
+                    }
+
+
+                    this.render = function(){
+                        this.update();
+
+                        //this.setDimensions();
+                        this.context.fillStyle="#000000";
+                        this.context.rect(this.x, this.y, this.width, this.height);
+                        this.context.fillStyle="#F7F7F7";
+                        this.context.fillRect(this.x + 1, this.y +1 , this.width - 2, this.height -2);
+
+                        this.player1.render();
+                        this.player2.render();
                     };
 
-                    return !(r2position.left > r1position.right ||
-                        r2position.right < r1position.left ||
-                        r2position.top > r1position.bottom ||
-                        r2position.bottom < r1position.top);
-                };
+
+
+                    //Player
+                    this.player1 = new Player(context, "PLAYER1", false, this.x, this.y, this.width, this.height);
+                    this.player2 = new Player(context, "PLAYER2", true, this.x, this.y, this.width, this.height);
+                    this.player1.eventServer = eventNotifieServer;
+
+                    this.player1.x = 100;
+                    this.player2.x = 900;
+                    this.player1.y = 200;
+                    this.player2.y = 200;
+
+
+
+                    var keydown = function(event){
+                        $this.player1.bindKey(event.keyCode, "down");
+                    };
+
+                    var keyrelease = function(event){
+                        $this.player1.bindKey(event.keyCode, "release");
+                    };
+
+                    var keypress = function(event){
+                        $this.player1.bindKey(event.charCode, "press");
+                    };
+
+
+                    //this.setDimensions();
+
+
+
+
+
+
+
+                    SocketService.then(function(SocketService) {
+
+                        //Emission
+                        var notifieServer = function(){
+                            var data = $this.player1.getMessage();
+                            SocketService.emit('game.set.playerudpate', data);
+                        };
+
+                        window.addEventListener('notifieServer', notifieServer, false);
+
+
+                        //Reception
+                        var onServerNotification = function(data){
+                            $this.player2.setMessage(data);
+                        };
+
+                        SocketService.on('game.get.playerudpate', onServerNotification);
+
+                    });
+
+                    window.addEventListener('keydown', keydown, false);
+                    window.addEventListener('keyup', keyrelease, false);
+
+
+                    //window.addEventListener('resize', setDimensions);
+                }
+
+                var stage = new Stage(context);
 
                 function gameLoop () {
 
@@ -59,28 +180,10 @@
                     //requestAnimationFrame(gameLoop);
                     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
-                    player.render();
-                    player2.render();
+                    stage.render();
 
-                    if(collision(player, player2)){
-                        player.collision = player2;
-                        player2.collision = player1;
-                        console.log('COLLISION');
-                    }
-                    else{
-                        player.collision = false;
-                        player2.collision = false;
-                    }
                 }
 
-
-                var keydown = function(event){
-                    player.bindKey(event.keyCode, "down");
-                };
-
-                var keyrelease = function(event){
-                    player.bindKey(event.keyCode, "release");
-                };
 
                 var pauseGame = function(){
                     clearInterval(interval);
@@ -90,8 +193,7 @@
                     interval = setInterval(gameLoop, 1000/30);
                 };
 
-
-
+                playGame();
 
 
 
@@ -99,20 +201,23 @@
                 var resizeCanvas = function(){
                     canvas.width = window.innerWidth;
                     canvas.height = window.innerHeight;
+
                 };
 
+
                 resizeCanvas();
-                window.addEventListener('keydown', keydown, false);
-                window.addEventListener('keyup', keyrelease, false);
-                //window.addEventListener('keypress', keydown, false);
-                window.addEventListener('blur', pauseGame, false);
-                window.addEventListener('focus', playGame, false);
+
+                //window.addEventListener('keypress', keypress, false);
+                //window.addEventListener('blur', pauseGame, false);
+                //window.addEventListener('focus', playGame, false);
                 window.addEventListener('resize', resizeCanvas);
 
 
 
 
-                playGame();
+
+
+
             }
         };
     }]);

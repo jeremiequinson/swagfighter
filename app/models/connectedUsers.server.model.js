@@ -12,6 +12,7 @@
     var moduleExport = {};
 
 
+
     /**
      * Private scope
      */

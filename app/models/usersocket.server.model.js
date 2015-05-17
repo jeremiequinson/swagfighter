@@ -16,7 +16,8 @@
         var currentLocation = null;    //Localisation de l'utilisateur sur l'application
         var challengers = {};          //Liste de challengers
         var challenging = {};          //Liste de joueur challengé
-        var $this = this;
+        var opponentSocket = undefined;
+        var $this = undefined;
 
 
         //Retourne le socket id
@@ -53,6 +54,33 @@
         this.isCurrentLocation = function(loc){
             return currentLocation == loc;
         };
+
+        //Un jeu est en cours?
+        this.hasGame = function(){
+            return opponentSocket !== undefined;
+        };
+
+        //Récupère le userSocket de son adversaire
+        this.setOpponentSocket = function(socket){
+            if(this.hasGame()) {
+                return false;
+            }
+            else{
+                opponentSocket = socket;
+            }
+        };
+
+        //Récupère le userSocket de son adversaire
+        this.getOpponentSocket = function(){
+            if(this.hasGame()) {
+                return opponentSocket;
+            }
+
+            return;
+        };
+
+
+
 
 
         //Add challenger
@@ -128,12 +156,6 @@
             }
         };
 
-        //Supprime tous les challenges en cours. Chaque joueur challengé est notifié.
-        //Chaque joueur qui le challenge est aussi notifié
-        /*this.removeAllChallenges = function(){
-
-
-        };*/
 
         //Challengers
         this.getChallengers = function(){
@@ -151,24 +173,14 @@
 
             //Si le joueur n'apparait plus dans la liste des joueurs défié, la requete a expirée
             if(challenging[targetid] === undefined){
-                /*callback(false, "Le délais d'attente a expiré. Provoquez en duel le joueur ou attendez une proposition de sa part pour relancer une partie.");
-                return;*/
                 return false;
             }
 
             //Si le challenger n'est plus sur le Lobby
             if(currentLocation !== UserSocket.LOCATION_LOBBY){
-                /*callback(false, "Le joueur n'est plus disponible pour une partie.");
-                return;*/
                 return false;
             }
             return true;
-            /*console.log(callback);
-            console.log(typeof(callback));*/
-
-            //Si il est dispo, on pourra lancer les utilisateurs sur le jeu
-            /*callback(true, null);
-            return;*/
         };
 
 
